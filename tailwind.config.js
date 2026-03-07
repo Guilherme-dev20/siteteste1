@@ -1,0 +1,69 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './sections/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        space: {
+          black: '#050510',
+          deep: '#0A0A1A',
+          dark: '#0F0A1E',
+          navy: '#0D0D2B',
+        },
+        nebula: {
+          purple: '#8B5CF6',
+          violet: '#7C3AED',
+          indigo: '#6366F1',
+          pink: '#A855F7',
+          light: '#C4B5FD',
+          glow: '#DDD6FE',
+        },
+        comet: {
+          white: '#F8FAFC',
+          tail: '#E2E8F0',
+        },
+      },
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+        display: ['Montserrat', 'sans-serif'],
+      },
+      backgroundImage: {
+        'nebula-gradient': 'radial-gradient(ellipse at center, #1e1040 0%, #050510 70%)',
+        'purple-glow': 'radial-gradient(ellipse, #8B5CF620 0%, transparent 70%)',
+        'card-gradient': 'linear-gradient(135deg, #1a1040 0%, #0d0d2b 100%)',
+      },
+      boxShadow: {
+        'purple-glow': '0 0 20px rgba(139, 92, 246, 0.4)',
+        'purple-glow-lg': '0 0 40px rgba(139, 92, 246, 0.5)',
+        'purple-glow-xl': '0 0 60px rgba(139, 92, 246, 0.6)',
+        'card': '0 4px 24px rgba(0,0,0,0.5)',
+      },
+      animation: {
+        'float': 'float 6s ease-in-out infinite',
+        'pulse-slow': 'pulse 4s ease-in-out infinite',
+        'spin-slow': 'spin 20s linear infinite',
+        'comet': 'comet 3s linear forwards',
+        'shimmer': 'shimmer 2s linear infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        comet: {
+          '0%': { transform: 'translateX(-100%) translateY(-100%)', opacity: '1' },
+          '100%': { transform: 'translateX(200vw) translateY(200vh)', opacity: '0' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}

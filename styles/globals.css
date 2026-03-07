@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --purple-primary: #8B5CF6;
+  --purple-dark: #7C3AED;
+  --purple-light: #A855F7;
+  --space-black: #050510;
+  --space-dark: #0F0A1E;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--space-black);
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Hide scrollbar utility (used in tab bars) */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #8B5CF6;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A855F7;
+}
+
+/* Utilities */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-nebula-purple via-nebula-pink to-nebula-light bg-clip-text text-transparent;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 20px rgba(139, 92, 246, 0.8), 0 0 40px rgba(139, 92, 246, 0.4);
+  }
+
+  .glow-border {
+    box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.5), 0 0 20px rgba(139, 92, 246, 0.2);
+  }
+
+  .card-glass {
+    background: rgba(15, 10, 30, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  .nebula-bg {
+    background: radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+                #050510;
+  }
+
+  .shimmer-bg {
+    background: linear-gradient(
+      90deg,
+      rgba(139, 92, 246, 0) 0%,
+      rgba(139, 92, 246, 0.15) 50%,
+      rgba(139, 92, 246, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-nebula-violet to-nebula-purple
+           text-white font-semibold px-8 py-3 rounded-full
+           hover:shadow-purple-glow hover:scale-105
+           transition-all duration-300 cursor-pointer border-0 outline-none;
+  }
+
+  .btn-outline {
+    @apply border border-nebula-purple text-nebula-purple font-semibold px-8 py-3 rounded-full
+           hover:bg-nebula-purple hover:text-white hover:shadow-purple-glow
+           transition-all duration-300 cursor-pointer bg-transparent;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl lg:text-5xl font-bold font-display text-gradient mb-4;
+  }
+
+  .section-subtitle {
+    @apply text-gray-400 text-base md:text-lg max-w-2xl mx-auto;
+  }
+
+  .nav-link {
+    @apply text-gray-300 hover:text-nebula-purple font-medium transition-all duration-300
+           relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5
+           after:bg-nebula-purple after:transition-all after:duration-300 hover:after:w-full;
+  }
+}
+
+/* Three.js canvas */
+canvas {
+  display: block;
+}
+
+/* Product card hover */
+.product-card:hover .product-img {
+  transform: scale(1.08);
+}
+
+/* Neon glow animation */
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(139, 92, 246, 0.4), 0 0 20px rgba(139, 92, 246, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.8), 0 0 40px rgba(139, 92, 246, 0.4), 0 0 60px rgba(139, 92, 246, 0.2); }
+}
+
+.neon-border {
+  animation: neon-pulse 3s ease-in-out infinite;
+}
+
+/* Comet trail */
+@keyframes cometAnim {
+  0% { transform: translate(-10vw, -10vh) rotate(45deg); opacity: 1; }
+  100% { transform: translate(110vw, 110vh) rotate(45deg); opacity: 0; }
+}
+
+.comet-trail {
+  animation: cometAnim linear forwards;
+}
