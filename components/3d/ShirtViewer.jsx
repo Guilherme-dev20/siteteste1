@@ -1,46 +1,242 @@
-import { useRef, Suspense, useMemo, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { useRef, Suspense, useMemo, useEffect, useState } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 
-// Preload da camisa principal (hero)
-const HERO_MODEL = '/models/camisanormal2.glb'
+const HERO_MODEL = '/models/camisateste2.glb'
 useGLTF.preload(HERO_MODEL)
 
-// ─── Modelo GLB com auto-rotate e float ──────────────────────────────────────
-function GLBHeroShirt({ color }) {
-  const { scene } = useGLTF(HERO_MODEL)
-  const groupRef   = useRef()
+// ─── Gera a textura da camisa hero com design Cometa ─────────────────────────
+function buildHeroTexture() {
+  const size = 1024
+  const c    = document.createElement('canvas')
+  c.width    = size
+  c.height   = size
+  const ctx  = c.getContext('2d')
+  // escala 2× para manter coordenadas originais (desenhado em 512 lógico)
+  ctx.scale(2, 2)
 
-  // Clona e normaliza escala/posição uma única vez
+  // Fundo preto
+  ctx.fillStyle = '#0a0a0a'
+  ctx.fillRect(0, 0, 512, 512)
+
+  // Nebulosa roxa no centro
+  const nebula = ctx.createRadialGradient(256, 210, 10, 256, 210, 200)
+  nebula.addColorStop(0,   'rgba(139,92,246,0.45)')
+  nebula.addColorStop(0.4, 'rgba(109,40,217,0.20)')
+  nebula.addColorStop(1,   'rgba(0,0,0,0)')
+  ctx.fillStyle = nebula
+  ctx.fillRect(0, 0, size, size)
+
+  // Nebulosa secundária (azul)
+  const nebula2 = ctx.createRadialGradient(340, 150, 0, 340, 150, 130)
+  nebula2.addColorStop(0,   'rgba(59,130,246,0.25)')
+  nebula2.addColorStop(1,   'rgba(0,0,0,0)')
+  ctx.fillStyle = nebula2
+  ctx.fillRect(0, 0, size, size)
+
+  // Estrelas
+  const rng = { v: 0 }
+  const rand = () => { rng.v = (rng.v * 9301 + 49297) % 233280; return rng.v / 233280 }
+  for (let i = 0; i < 120; i++) {
+    const x  = rand() * size
+    const y  = rand() * size
+    const r  = rand() * 1.4 + 0.3
+    const op = rand() * 0.7 + 0.3
+    ctx.beginPath()
+    ctx.arc(x, y, r, 0, Math.PI * 2)
+    ctx.fillStyle = `rgba(255,255,255,${op})`
+    ctx.fill()
+  }
+
+  // Cometa diagonal
+  const cometGrad = ctx.createLinearGradient(60, 60, 230, 130)
+  cometGrad.addColorStop(0,   'rgba(255,255,255,0)')
+  cometGrad.addColorStop(0.6, 'rgba(200,180,255,0.5)')
+  cometGrad.addColorStop(1,   'rgba(255,255,255,0.9)')
+  ctx.save()
+  ctx.strokeStyle = cometGrad
+  ctx.lineWidth   = 2
+  ctx.shadowColor = '#a78bfa'
+  ctx.shadowBlur  = 8
+  ctx.beginPath()
+  ctx.moveTo(60, 60)
+  ctx.lineTo(230, 130)
+  ctx.stroke()
+  ctx.restore()
+
+  // Ícone de cometa (círculo brilhante)
+  const starGlow = ctx.createRadialGradient(232, 131, 0, 232, 131, 18)
+  starGlow.addColorStop(0,   'rgba(255,255,255,1)')
+  starGlow.addColorStop(0.3, 'rgba(200,180,255,0.8)')
+  starGlow.addColorStop(1,   'rgba(139,92,246,0)')
+  ctx.fillStyle = starGlow
+  ctx.beginPath()
+  ctx.arc(232, 131, 18, 0, Math.PI * 2)
+  ctx.fill()
+
+  // Anel decorativo central
+  ctx.save()
+  ctx.strokeStyle = 'rgba(139,92,246,0.35)'
+  ctx.lineWidth   = 1
+  ctx.setLineDash([4, 8])
+  ctx.beginPath()
+  ctx.arc(256, 256, 130, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.restore()
+
+  ctx.save()
+  ctx.strokeStyle = 'rgba(167,139,250,0.15)'
+  ctx.lineWidth   = 1
+  ctx.setLineDash([2, 12])
+  ctx.beginPath()
+  ctx.arc(256, 256, 160, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.restore()
+
+  // Texto "COMETA" em grande
+  ctx.save()
+  ctx.shadowColor = '#8B5CF6'
+  ctx.shadowBlur  = 24
+  ctx.fillStyle   = '#ffffff'
+  ctx.font        = 'bold 72px Arial Black, Arial, sans-serif'
+  ctx.textAlign   = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('COMETA', 256, 220)
+  ctx.restore()
+
+  // Linha decorativa sob o título
+  const lineGrad = ctx.createLinearGradient(96, 248, 416, 248)
+  lineGrad.addColorStop(0,   'rgba(139,92,246,0)')
+  lineGrad.addColorStop(0.5, 'rgba(139,92,246,0.9)')
+  lineGrad.addColorStop(1,   'rgba(139,92,246,0)')
+  ctx.strokeStyle = lineGrad
+  ctx.lineWidth   = 1.5
+  ctx.setLineDash([])
+  ctx.beginPath()
+  ctx.moveTo(96, 252)
+  ctx.lineTo(416, 252)
+  ctx.stroke()
+
+  // Subtítulo
+  ctx.save()
+  ctx.fillStyle    = 'rgba(167,139,250,0.85)'
+  ctx.font         = 'bold 20px Arial, sans-serif'
+  ctx.textAlign    = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.letterSpacing = '6px'
+  ctx.fillText('PERSONALIZAÇÃO', 256, 278)
+  ctx.restore()
+
+  // Tagline
+  ctx.save()
+  ctx.fillStyle    = 'rgba(255,255,255,0.30)'
+  ctx.font         = '13px Arial, sans-serif'
+  ctx.textAlign    = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('DO UNIVERSO PARA VOCÊ', 256, 308)
+  ctx.restore()
+
+  // Partículas brilhantes adicionais
+  const sparks = [[140,310],[370,290],[190,350],[320,340],[255,390],[155,240],[360,230]]
+  sparks.forEach(([x, y]) => {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, 6)
+    g.addColorStop(0,   'rgba(255,255,255,0.7)')
+    g.addColorStop(1,   'rgba(139,92,246,0)')
+    ctx.fillStyle = g
+    ctx.beginPath()
+    ctx.arc(x, y, 6, 0, Math.PI * 2)
+    ctx.fill()
+  })
+
+  // Logo marca embaixo
+  ctx.save()
+  ctx.fillStyle    = 'rgba(139,92,246,0.50)'
+  ctx.font         = 'bold 15px Arial, sans-serif'
+  ctx.textAlign    = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('⚡ COMETA STORE', 256, 460)
+  ctx.restore()
+
+  return c
+}
+
+// ─── Modelo GLB com textura hero ─────────────────────────────────────────────
+function GLBHeroShirt() {
+  const { scene }  = useGLTF(HERO_MODEL)
+  const { gl }     = useThree()
+  const groupRef   = useRef()
+  const texRef     = useRef(null)
+  const maxAniso   = gl.capabilities.getMaxAnisotropy()
+
   const clone = useMemo(() => {
     const c   = scene.clone(true)
     const box = new THREE.Box3().setFromObject(c)
     const sz  = box.getSize(new THREE.Vector3())
     const max = Math.max(sz.x, sz.y, sz.z)
     if (max > 0) c.scale.setScalar(2.2 / max)
-
     const box2   = new THREE.Box3().setFromObject(c)
     const center = box2.getCenter(new THREE.Vector3())
     c.position.sub(center)
     return c
   }, [scene])
 
-  // Aplica cor a todos os meshes
   useEffect(() => {
-    clone.traverse((child) => {
-      if (!child.isMesh) return
-      child.material = new THREE.MeshStandardMaterial({
-        color:     new THREE.Color(color),
-        roughness: 0.72,
-        metalness: 0.05,
+    const applyCanvas = (canvas) => {
+      const tex = new THREE.CanvasTexture(canvas)
+      tex.colorSpace  = THREE.SRGBColorSpace
+      tex.flipY       = false
+      tex.anisotropy  = maxAniso
+      tex.minFilter   = THREE.LinearMipmapLinearFilter
+      tex.magFilter   = THREE.LinearFilter
+      tex.generateMipmaps = true
+      texRef.current  = tex
+      const mat = new THREE.MeshStandardMaterial({
+        color:     new THREE.Color('#ffffff'),
+        map:       tex,
+        roughness: 0.75,
+        metalness: 0.03,
       })
-      child.castShadow    = true
-      child.receiveShadow = true
-    })
-  }, [clone, color])
+      clone.traverse((child) => {
+        if (!child.isMesh) return
+        child.material      = mat
+        child.castShadow    = true
+        child.receiveShadow = true
+      })
+    }
 
-  // Rotação + float
+    // Costas = quadrante B (cima-direito): UV x:512-1024, y:0-512 → centro (768, 256)
+    const buildCanvasWithDesign = (img) => {
+      const size = 1024
+      const c    = document.createElement('canvas')
+      c.width    = size
+      c.height   = size
+      const ctx  = c.getContext('2d')
+
+      // Base branca (cor da camisa)
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, size, size)
+
+      if (img) {
+        const dw = 280
+        const dh = 280
+        const dx = 768 - Math.round(dw / 2)   // centro horizontal das costas
+        const dy = 256 - Math.round(dh / 2)   // centro vertical das costas
+        ctx.drawImage(img, dx, dy, dw, dh)
+      }
+
+      return c
+    }
+
+    // Tenta carregar a imagem de design
+    const img = new window.Image()
+    img.onload  = () => applyCanvas(buildCanvasWithDesign(img))
+    img.onerror = () => applyCanvas(buildHeroTexture())  // fallback canvas Cometa
+    img.src = '/textures/hero-shirt.jpeg'
+
+    return () => { texRef.current?.dispose() }
+  }, [clone])
+
   useFrame((state) => {
     if (!groupRef.current) return
     groupRef.current.rotation.y += 0.005
@@ -54,10 +250,10 @@ function GLBHeroShirt({ color }) {
   )
 }
 
-// ─── Fallback geométrico enquanto o GLB carrega ───────────────────────────────
-function GeometricFallback({ color }) {
+// ─── Fallback geométrico ──────────────────────────────────────────────────────
+function GeometricFallback() {
   const groupRef = useRef()
-  const c = useMemo(() => new THREE.Color(color), [color])
+  const c = useMemo(() => new THREE.Color('#0a0a0a'), [])
 
   useFrame((state) => {
     if (!groupRef.current) return
@@ -88,20 +284,20 @@ function GeometricFallback({ color }) {
 }
 
 // ─── Componente exportado ─────────────────────────────────────────────────────
-export default function ShirtViewer({ color = '#8B5CF6' }) {
+export default function ShirtViewer() {
   return (
     <Canvas
       camera={{ position: [0, 0, 3.5], fov: 44 }}
       gl={{ antialias: true, alpha: true }}
       style={{ background: 'transparent', width: '100%', height: '100%' }}
     >
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[5, 5, 5]}   intensity={1.6} castShadow />
-      <directionalLight position={[-3, 0, -3]} intensity={0.4} color="#a855f7" />
-      <pointLight       position={[0, 2, 2]}   intensity={0.9} color="#8B5CF6" />
+      <ambientLight intensity={0.3} />
+      <directionalLight position={[5, 5, 5]}   intensity={1.2} castShadow />
+      <directionalLight position={[-3, 0, -3]} intensity={0.2} color="#a855f7" />
+      <pointLight       position={[0, 2, 2]}   intensity={0.6} color="#8B5CF6" />
 
-      <Suspense fallback={<GeometricFallback color={color} />}>
-        <GLBHeroShirt color={color} />
+      <Suspense fallback={<GeometricFallback />}>
+        <GLBHeroShirt />
       </Suspense>
 
       <Environment preset="city" />

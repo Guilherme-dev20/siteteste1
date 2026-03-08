@@ -3,10 +3,10 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF, OrbitControls, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 import { motion, AnimatePresence } from 'framer-motion'
+import KonvaEditor from './KonvaEditor'
 
 // ─── Modelos disponíveis ──────────────────────────────────────────────────────
 const MODELS = [
-  { id: 'camisanormal2', label: 'Camisa Normal', path: '/models/camisanormal2.glb' },
   { id: 'camisateste2',  label: 'Camisa Teste',  path: '/models/camisateste2.glb'  },
   { id: 'collar',        label: 'Camisa Gola',   path: '/models/collar.glb'         },
 ]
@@ -45,58 +45,12 @@ const COLOR_PALETTE = [
   { label: 'Vinho',     value: '#7F1D1D' },
 ]
 
-// ─── Constrói o canvas de textura (async-safe) ────────────────────────────────
-// Chama onReady(canvas) quando o canvas estiver completamente desenhado.
-function buildCanvas(bgColor, image, imageScale, texts, onReady) {
-  const c   = document.createElement('canvas')
-  c.width   = 512
-  c.height  = 512
-  const ctx = c.getContext('2d')
-
-  // Fundo = cor da camisa
-  ctx.fillStyle = bgColor
-  ctx.fillRect(0, 0, 512, 512)
-
-  const drawTexts = () => {
-    texts.forEach(({ content, color, size, y }) => {
-      if (!content) return
-      ctx.save()
-      ctx.fillStyle    = color
-      ctx.font         = `bold ${size}px Poppins, sans-serif`
-      ctx.textAlign    = 'center'
-      ctx.textBaseline = 'alphabetic'
-      ctx.shadowColor  = 'rgba(0,0,0,0.55)'
-      ctx.shadowBlur   = 10
-      ctx.fillText(content, 256, y)
-      ctx.restore()
-    })
-    onReady(c)
-  }
-
-  if (image) {
-    const img  = new Image()
-    img.onload = () => {
-      const w = 280 * imageScale
-      const h = 280 * imageScale
-      ctx.drawImage(img, (512 - w) / 2, (512 - h) / 2 - 20, w, h)
-      drawTexts()
-    }
-    img.onerror = () => drawTexts() // continua mesmo se imagem falhar
-    img.src = image
-  } else {
-    drawTexts()
-  }
-}
-
 // ─── Modelo GLB 3D com textura de canvas ──────────────────────────────────────
-// Recebe `canvasEl` (elemento canvas já pronto) e `canvasVersion` (inteiro que
-// sobe a cada atualização do canvas) para forçar a recriação da textura.
 function GLBShirt({ path, canvasEl, canvasVersion }) {
   const { scene }  = useGLTF(path)
   const texRef     = useRef(null)
   const meshesRef  = useRef([])
 
-  // Clona e normaliza modelo
   const clone = useMemo(() => {
     const c   = scene.clone(true)
     const box = new THREE.Box3().setFromObject(c)
@@ -109,7 +63,6 @@ function GLBShirt({ path, canvasEl, canvasVersion }) {
     return c
   }, [scene])
 
-  // Coleta meshes quando o clone muda
   useEffect(() => {
     meshesRef.current = []
     clone.traverse((child) => {
@@ -117,35 +70,26 @@ function GLBShirt({ path, canvasEl, canvasVersion }) {
     })
   }, [clone])
 
-  // Recria textura e material sempre que canvasVersion mudar (canvas foi atualizado)
   useEffect(() => {
     if (!canvasEl) return
-
-    // Descarta textura anterior
-    if (texRef.current) {
-      texRef.current.dispose()
-      texRef.current = null
-    }
-
+    if (texRef.current) { texRef.current.dispose(); texRef.current = null }
     texRef.current = new THREE.CanvasTexture(canvasEl)
-
-    // Material: cor branca — o canvas já carrega a cor da peça como fundo
+    texRef.current.colorSpace = THREE.SRGBColorSpace
+    texRef.current.flipY = false  // GLTF usa V=0 no topo — sem flip
     const mat = new THREE.MeshStandardMaterial({
       color:     new THREE.Color('#FFFFFF'),
       map:       texRef.current,
       roughness: 0.72,
       metalness: 0.04,
     })
-
     meshesRef.current.forEach((mesh) => {
       if (mesh.material && mesh.material !== mat) mesh.material.dispose()
-      mesh.material    = mat
-      mesh.castShadow  = true
+      mesh.material   = mat
+      mesh.castShadow = true
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clone, canvasVersion]) // canvasEl não muda de referência, só o conteúdo muda
+  }, [clone, canvasVersion])
 
-  // Mantém a textura do canvas sincronizada a cada frame
   useFrame(() => {
     if (texRef.current) texRef.current.needsUpdate = true
   })
@@ -153,7 +97,7 @@ function GLBShirt({ path, canvasEl, canvasVersion }) {
   return <primitive object={clone} />
 }
 
-// Fallback geométrico enquanto o GLB carrega
+// ─── Fallback geométrico ──────────────────────────────────────────────────────
 function GeometricFallback({ color }) {
   const c = useMemo(() => new THREE.Color(color), [color])
   return (
@@ -244,66 +188,96 @@ export default function ShirtConfigurator() {
   const [shirtColor,    setShirtColor]    = useState('#3B82F6')
   const [side,          setSide]          = useState('frente')
 
+  // Estado unificado de elementos do canvas (texto + imagem)
+  const [elements,      setElements]      = useState([])
+  const [selectedId,    setSelectedId]    = useState(null)
+
+  // Configuração do próximo texto a adicionar
   const [textInput,     setTextInput]     = useState('')
-  const [texts,         setTexts]         = useState([])
   const [textColor,     setTextColor]     = useState('#FFFFFF')
   const [textSize,      setTextSize]      = useState(36)
 
-  const [image,         setImage]         = useState(null)
-  const [imageScale,    setImageScale]    = useState(1)
-
   const [activeTab,     setActiveTab]     = useState('roupa')
 
-  // Canvas e versão: a versão sobe só depois que o canvas foi TOTALMENTE desenhado
+  // Canvas e versão para sync com o material 3D
   const canvasElRef    = useRef(null)
   const [canvasVersion, setCanvasVersion] = useState(0)
 
   const fileRef = useRef(null)
 
-  // Reconstrói o canvas de textura (async-safe)
-  const rebuildCanvas = useCallback(() => {
-    const textObjects = texts.map((t, i) => ({
-      content: t.content,
-      color:   t.color,
-      size:    t.size,
-      y:       390 + i * (t.size + 6),
-    }))
+  // Recebe o canvas exportado pelo KonvaEditor
+  const handleKonvaCanvas = useCallback((canvas) => {
+    canvasElRef.current = canvas
+    setCanvasVersion((v) => v + 1)
+  }, [])
 
-    buildCanvas(shirtColor, image, imageScale, textObjects, (canvas) => {
-      canvasElRef.current = canvas
-      setCanvasVersion((v) => v + 1) // dispara re-aplicação do material no GLBShirt
-    })
-  }, [shirtColor, image, imageScale, texts])
+  // Atualiza atributos de um elemento
+  const handleElementChange = useCallback((id, attrs) => {
+    setElements((prev) =>
+      prev.map((el) => el.id === id ? { ...el, ...attrs } : el)
+    )
+  }, [])
 
-  useEffect(() => {
-    rebuildCanvas()
-  }, [rebuildCanvas])
+  // Remove elemento
+  const handleDeleteElement = useCallback((id) => {
+    setElements((prev) => prev.filter((el) => el.id !== id))
+    setSelectedId((cur) => cur === id ? null : cur)
+  }, [])
 
+  // Adiciona texto ao canvas e vai para a aba CANVAS
   const addText = () => {
     if (!textInput.trim()) return
-    setTexts((prev) => [
-      ...prev,
-      { content: textInput.trim(), color: textColor, size: textSize, id: Date.now() },
-    ])
+    const newEl = {
+      id:       Date.now(),
+      type:     'text',
+      x:        180,
+      y:        200,
+      text:     textInput.trim(),
+      fontSize: textSize,
+      fill:     textColor,
+      rotation: 0,
+    }
+    setElements((prev) => [...prev, newEl])
+    setSelectedId(newEl.id)
     setTextInput('')
+    setActiveTab('canvas')
   }
 
+  // Faz upload de imagem e vai para a aba CANVAS
   const handleFile = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = (ev) => setImage(ev.target.result)
+    reader.onload = (ev) => {
+      const newEl = {
+        id:       Date.now(),
+        type:     'image',
+        x:        100,
+        y:        100,
+        src:      ev.target.result,
+        width:    200,
+        height:   200,
+        rotation: 0,
+      }
+      setElements((prev) => [...prev, newEl])
+      setSelectedId(newEl.id)
+      setActiveTab('canvas')
+    }
     reader.readAsDataURL(file)
+    // Reset input so same file can be re-uploaded
+    e.target.value = ''
   }
 
   const sendWhatsApp = () => {
+    const textEls = elements.filter((el) => el.type === 'text')
+    const imgEls  = elements.filter((el) => el.type === 'image')
     const msg =
       `Olá! Personalizei uma peça no site Cometa Personalização e gostaria de fazer um pedido.\n\n` +
       `Produto: ${activeModel.label}\n` +
       `Cor: ${shirtColor}\n` +
       `Lado: ${side === 'frente' ? 'Frente' : 'Costas'}` +
-      (texts.length ? `\nTextos: ${texts.map((t) => `"${t.content}"`).join(', ')}` : '') +
-      (image ? '\nImagem personalizada: Sim' : '') +
+      (textEls.length ? `\nTextos: ${textEls.map((t) => `"${t.text}"`).join(', ')}` : '') +
+      (imgEls.length  ? `\nImagens: ${imgEls.length}` : '') +
       `\n\nAguardo o contato!`
     window.open(`https://wa.me/5511999999999?text=${encodeURIComponent(msg)}`, '_blank')
   }
@@ -337,10 +311,10 @@ export default function ShirtConfigurator() {
           gl={{ antialias: true, alpha: true }}
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         >
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[4, 6, 5]}   intensity={1.8} castShadow />
-          <directionalLight position={[-4, -2, -4]} intensity={0.4} color="#a855f7" />
-          <pointLight       position={[0, 3, 3]}    intensity={0.8} color="#8B5CF6" />
+          <ambientLight intensity={0.25} />
+          <directionalLight position={[4, 6, 5]}   intensity={1.2} castShadow />
+          <directionalLight position={[-4, -2, -4]} intensity={0.2} color="#a855f7" />
+          <pointLight       position={[0, 3, 3]}    intensity={0.5} color="#8B5CF6" />
 
           <Suspense fallback={<GeometricFallback color={shirtColor} />}>
             <GLBShirt
@@ -355,8 +329,8 @@ export default function ShirtConfigurator() {
             enablePan={false}
             minDistance={1.8}
             maxDistance={6}
-            minPolarAngle={Math.PI / 4}
-            maxPolarAngle={Math.PI / 1.6}
+            minPolarAngle={Math.PI / 2}
+            maxPolarAngle={Math.PI / 2}
           />
           <Environment preset="city" />
         </Canvas>
@@ -406,8 +380,32 @@ export default function ShirtConfigurator() {
           ))}
         </div>
 
-        {/* Conteúdo rolável */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 scrollbar-none">
+        {/* KonvaEditor sempre montado (oculto fora da aba CANVAS) */}
+        <div style={{ display: activeTab === 'canvas' ? 'block' : 'none' }}
+             className="flex-1 overflow-y-auto px-4 py-4 scrollbar-none">
+          <div className="bg-[#12122a] rounded-2xl p-3 border border-white/5">
+            <p className="text-[11px] font-bold tracking-widest text-nebula-purple mb-3 px-1">
+              EDITOR DE CANVAS
+            </p>
+            <KonvaEditor
+              shirtColor={shirtColor}
+              elements={elements}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onElementChange={handleElementChange}
+              onCanvasReady={handleKonvaCanvas}
+              onDeleteSelected={handleDeleteElement}
+            />
+          </div>
+          {elements.length === 0 && (
+            <p className="text-center text-gray-600 text-xs mt-3">
+              Adicione textos ou imagens pelas abas TEXTO e IMAGEM
+            </p>
+          )}
+        </div>
+
+        {/* Conteúdo rolável das outras abas */}
+        <div className={`flex-1 overflow-y-auto px-4 py-4 space-y-3 scrollbar-none ${activeTab === 'canvas' ? 'hidden' : ''}`}>
           <AnimatePresence mode="wait">
 
             {/* ── ROUPA ─────────────────────────────────────────────────────── */}
@@ -417,7 +415,6 @@ export default function ShirtConfigurator() {
                 exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
                 className="space-y-3">
 
-                {/* Seletor de modelo 3D */}
                 <SectionCard
                   label="MODELO 3D"
                   description="Escolha o modelo para visualizar"
@@ -458,7 +455,6 @@ export default function ShirtConfigurator() {
                   </div>
                 </SectionCard>
 
-                {/* Vista */}
                 <SectionCard
                   label="VISTA"
                   description="Alterne entre frente e costas da peça"
@@ -477,7 +473,6 @@ export default function ShirtConfigurator() {
                   </div>
                 </SectionCard>
 
-                {/* Cor da peça */}
                 <SectionCard label="COR DA PEÇA" description="Toque em uma cor para aplicar à peça" icon={<PaletteIcon />} gradient>
                   <ColorPalette selected={shirtColor} onSelect={setShirtColor} />
                   <div className="mt-4 pt-4 border-t border-white/8 flex items-center gap-3">
@@ -504,7 +499,7 @@ export default function ShirtConfigurator() {
 
                 <SectionCard
                   label="ADICIONAR TEXTO"
-                  description="Digite abaixo e pressione Enter ou clique em + ADD"
+                  description="Digite e clique em + ADD para inserir no canvas"
                   icon={<svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
                 >
                   <div className="flex gap-2">
@@ -523,27 +518,14 @@ export default function ShirtConfigurator() {
                     </motion.button>
                   </div>
 
-                  {texts.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {texts.map((t) => (
-                        <div key={t.id}
-                          className="flex items-center justify-between bg-[#0b0b1e]
-                                     rounded-xl px-3 py-2 border border-white/8">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
-                            <span className="text-white text-sm truncate">{t.content}</span>
-                          </div>
-                          <button onClick={() => setTexts((p) => p.filter((x) => x.id !== t.id))}
-                            className="text-gray-600 hover:text-red-400 transition-colors ml-2 flex-shrink-0 text-xl leading-none">×</button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <p className="text-[10px] text-gray-600 mt-2">
+                    O texto será adicionado ao canvas e pode ser arrastado, redimensionado e rotacionado.
+                  </p>
                 </SectionCard>
 
                 <SectionCard
                   label="TAMANHO DO TEXTO"
-                  description="Ajuste o tamanho da fonte"
+                  description="Ajuste o tamanho inicial da fonte"
                   icon={<svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" /></svg>}
                 >
                   <div className="flex items-center gap-3">
@@ -554,7 +536,7 @@ export default function ShirtConfigurator() {
                   </div>
                 </SectionCard>
 
-                <SectionCard label="COR DO TEXTO" description="Selecione uma cor para aplicar ao texto" icon={<PaletteIcon />} gradient>
+                <SectionCard label="COR DO TEXTO" description="Selecione a cor inicial do texto" icon={<PaletteIcon />} gradient>
                   <ColorPalette selected={textColor} onSelect={setTextColor} />
                 </SectionCard>
 
@@ -580,57 +562,14 @@ export default function ShirtConfigurator() {
                                py-6 text-center hover:border-nebula-purple hover:bg-nebula-purple/5
                                transition-all duration-300 cursor-pointer">
                     <div className="text-3xl mb-1">📁</div>
-                    <p className="text-gray-400 text-sm">{image ? 'Trocar imagem' : 'Clique para enviar'}</p>
+                    <p className="text-gray-400 text-sm">Clique para enviar</p>
                     <p className="text-gray-600 text-xs mt-0.5">PNG · JPG · GIF</p>
                   </button>
-
-                  {image && (
-                    <div className="mt-3 space-y-3">
-                      <img src={image} alt="Preview"
-                        className="w-full h-28 object-contain rounded-xl bg-[#0b0b1e] border border-white/10" />
-                      <div>
-                        <div className="flex justify-between text-xs text-gray-400 mb-1.5">
-                          <span>Tamanho</span>
-                          <span className="text-white">{Math.round(imageScale * 100)}%</span>
-                        </div>
-                        <input type="range" min="0.3" max="2" step="0.05" value={imageScale}
-                          onChange={(e) => setImageScale(+e.target.value)}
-                          className="w-full accent-nebula-purple h-1.5 rounded-full" />
-                      </div>
-                      <button onClick={() => setImage(null)}
-                        className="text-xs text-red-400/70 hover:text-red-400 transition-colors">
-                        Remover imagem
-                      </button>
-                    </div>
-                  )}
-                </SectionCard>
-
-              </motion.div>
-            )}
-
-            {/* ── CANVAS (preview da textura) ────────────────────────────────── */}
-            {activeTab === 'canvas' && (
-              <motion.div key="canvas"
-                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
-                className="space-y-3">
-                <SectionCard
-                  label="CANVAS"
-                  description="Prévia exata da textura aplicada na peça"
-                  icon={<svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={2} /></svg>}
-                >
-                  <div className="rounded-xl overflow-hidden border border-white/10 bg-[#0b0b1e]">
-                    {canvasElRef.current
-                      ? <img src={canvasElRef.current.toDataURL()} alt="Canvas" className="w-full h-auto" />
-                      : <div className="h-40 flex items-center justify-center text-gray-600 text-sm">
-                          Nenhuma alteração ainda
-                        </div>
-                    }
-                  </div>
-                  <p className="text-center text-[10px] text-gray-600 mt-2">
-                    Versão #{canvasVersion} — atualiza automaticamente
+                  <p className="text-[10px] text-gray-600 mt-2">
+                    A imagem será adicionada ao canvas e pode ser arrastada, redimensionada e rotacionada.
                   </p>
                 </SectionCard>
+
               </motion.div>
             )}
 
@@ -656,8 +595,10 @@ export default function ShirtConfigurator() {
                           <span>{shirtColor.toUpperCase()}</span>
                         </div>
                       )},
-                      { label: 'Textos',  value: texts.length ? texts.map((t) => `"${t.content}"`).join(', ') : 'Nenhum' },
-                      { label: 'Imagem',  value: image ? 'Sim' : 'Não' },
+                      { label: 'Textos',  value: elements.filter((e) => e.type === 'text').length
+                          ? elements.filter((e) => e.type === 'text').map((t) => `"${t.text}"`).join(', ')
+                          : 'Nenhum' },
+                      { label: 'Imagens', value: `${elements.filter((e) => e.type === 'image').length}` },
                     ].map(({ label, value }) => (
                       <div key={label} className="flex items-center justify-between gap-2">
                         <span className="text-gray-500 flex-shrink-0">{label}:</span>
@@ -673,7 +614,11 @@ export default function ShirtConfigurator() {
                   icon={<svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>}
                 >
                   <button
-                    onClick={() => { setTexts([]); setImage(null); setShirtColor('#3B82F6') }}
+                    onClick={() => {
+                      setElements([])
+                      setSelectedId(null)
+                      setShirtColor('#3B82F6')
+                    }}
                     className="w-full py-2.5 rounded-xl border border-red-500/30 text-red-400
                                text-sm font-medium hover:bg-red-500/10 transition-all duration-200">
                     Limpar personalizações

@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FloatingButtons from '../components/FloatingButtons'
 import Hero from '../sections/Hero'
+import Campaign from '../sections/Campaign'
 import FeaturedProducts from '../sections/FeaturedProducts'
 import Themes from '../sections/Themes'
 import HowItWorks from '../sections/HowItWorks'
@@ -30,6 +31,7 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
+        <Campaign />
         <FeaturedProducts />
         <Themes />
         <HowItWorks />
