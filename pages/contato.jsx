@@ -16,7 +16,7 @@ const contactItems = [
     icon: '📱',
     label: 'WhatsApp',
     value: '(11) 99999-9999',
-    href: 'https://wa.me/5511999999999',
+    href: 'https://wa.me/5585987208308',
     color: '#25D366',
   },
   {
@@ -44,7 +44,7 @@ export default function Contato() {
 
   const handleWhatsApp = () => {
     const text = `Olá! Sou ${form.name}${form.phone ? `, meu telefone é ${form.phone}` : ''}. ${form.message || 'Vim pelo site Cometa Personalização e gostaria de saber mais!'}`
-    const url = `https://wa.me/5511999999999?text=${encodeURIComponent(text)}`
+    const url = `https://wa.me/5585987208308?text=${encodeURIComponent(text)}`
     window.open(url, '_blank')
   }
 

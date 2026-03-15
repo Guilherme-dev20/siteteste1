@@ -1,9 +1,25 @@
 import { useRef, useState, useEffect, Suspense, useCallback, useMemo } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, OrbitControls, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 import { motion, AnimatePresence } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import KonvaEditor from './KonvaEditor'
+import { supabase } from '../../lib/supabase'
+
+const SpaceBackground = dynamic(() => import('./SpaceBackground'), { ssr: false })
+
+// ─── Temas de fundo do viewport ───────────────────────────────────────────────
+const BG_THEMES = [
+  { id: 'dark',    label: 'Escuro',     bg: '#07071a',                                                                               env: 'city',   space: false },
+  { id: 'space',   label: 'Espacial',   bg: 'radial-gradient(ellipse at 50% 20%, #12082e 0%, #07071a 60%, #030310 100%)',             env: 'night',  space: true  },
+  { id: 'studio',  label: 'Estúdio',    bg: '#1c1c1c',                                                                               env: 'studio', space: false },
+  { id: 'sunset',  label: 'Pôr do Sol', bg: 'linear-gradient(180deg, #1a0a05 0%, #2d1005 50%, #0a050f 100%)',                        env: 'sunset', space: false },
+  { id: 'forest',  label: 'Floresta',   bg: 'linear-gradient(180deg, #051a08 0%, #0a1f0d 60%, #05100a 100%)',                        env: 'forest', space: false },
+  { id: 'neon',    label: 'Neon',       bg: 'linear-gradient(135deg, #000820 0%, #001020 50%, #000820 100%)',                        env: 'city',   space: false },
+  { id: 'dawn',    label: 'Amanhecer',  bg: 'linear-gradient(180deg, #0d0520 0%, #1a0830 40%, #05050f 100%)',                        env: 'dawn',   space: false },
+  { id: 'white',   label: 'Branco',     bg: '#f0f0f0',                                                                               env: 'studio', space: false },
+]
 
 // ─── Modelos disponíveis ──────────────────────────────────────────────────────
 const MODELS = [
@@ -12,37 +28,13 @@ const MODELS = [
 ]
 MODELS.forEach((m) => useGLTF.preload(m.path))
 
-// ─── Paleta de cores ──────────────────────────────────────────────────────────
-const COLOR_PALETTE = [
-  { label: 'Amarelo',    value: '#F5C518' },
-  { label: 'Azul BB',   value: '#93C5FD' },
-  { label: 'Azul Mar.', value: '#1E3A5F' },
-  { label: 'Azul Roy.', value: '#1D4ED8' },
-  { label: 'Azul Tur.', value: '#06B6D4' },
-  { label: 'Branco',    value: '#FFFFFF'  },
-  { label: 'Cáqui',     value: '#C5A87A' },
-  { label: 'Cinza Ch.', value: '#374151' },
-  { label: 'Cinza Me.', value: '#9CA3AF' },
-  { label: 'Fúcsia',    value: '#D946EF' },
-  { label: 'Laranja',   value: '#F97316' },
-  { label: 'Lilás',     value: '#A78BFA' },
-  { label: 'Marfim',    value: '#FFF8E7' },
-  { label: 'Marrom',    value: '#7C3A1E' },
-  { label: 'Mostarda',  value: '#CA8A04' },
-  { label: 'Pink',      value: '#EC4899' },
-  { label: 'Preto',     value: '#111111' },
-  { label: 'Rosa BB',   value: '#FBCFE8' },
-  { label: 'Rosa Chi.', value: '#F472B6' },
-  { label: 'Roxo',      value: '#8B5CF6' },
-  { label: 'Salmão',    value: '#FDA4AF' },
-  { label: 'Terracota', value: '#C2633A' },
-  { label: 'Verde Ba.', value: '#166534' },
-  { label: 'Verde BB',  value: '#86EFAC' },
-  { label: 'Verde Mi.', value: '#4B5320' },
-  { label: 'Verde Ve.', value: '#22C55E' },
-  { label: 'Verde Vi.', value: '#16A34A' },
-  { label: 'Vermelho',  value: '#EF4444' },
-  { label: 'Vinho',     value: '#7F1D1D' },
+// ─── Paleta de cores (carregada do Supabase) ─────────────────────────────────
+// Fallback estático usado enquanto carrega ou se offline
+const COLOR_PALETTE_FALLBACK = [
+  { label: 'Preto',   value: '#000000' },
+  { label: 'Branco',  value: '#FFFFFF' },
+  { label: 'Azul',    value: '#1D4ED8' },
+  { label: 'Vermelho',value: '#EF4444' },
 ]
 
 // ─── Modelo GLB 3D com textura de canvas ──────────────────────────────────────
@@ -122,11 +114,44 @@ function GeometricFallback({ color }) {
   )
 }
 
+// ─── Expõe estado Three.js via ref para captura fora do Canvas ───────────────
+function CanvasCapture({ threeRef }) {
+  const state = useThree()
+  threeRef.current = state
+  return null
+}
+
+// ─── Rotação automática da câmera ao trocar frente/costas ────────────────────
+function CameraRotator({ side }) {
+  const { camera, controls } = useThree()
+
+  useEffect(() => {
+    const targetAngle = side === 'costas' ? Math.PI : 0
+    const sph = new THREE.Spherical()
+    const offset = controls
+      ? new THREE.Vector3(
+          camera.position.x - controls.target.x,
+          camera.position.y - controls.target.y,
+          camera.position.z - controls.target.z,
+        )
+      : camera.position.clone()
+    sph.setFromVector3(offset)
+    sph.theta = targetAngle
+    const newPos = new THREE.Vector3().setFromSpherical(sph)
+    if (controls) newPos.add(controls.target)
+    camera.position.copy(newPos)
+    camera.lookAt(controls ? controls.target : new THREE.Vector3(0, 0, 0))
+    if (controls) controls.update()
+  }, [side]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return null
+}
+
 // ─── UI: Paleta de círculos ───────────────────────────────────────────────────
-function ColorPalette({ selected, onSelect }) {
+function ColorPalette({ palette, selected, onSelect }) {
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-x-2 gap-y-4">
-      {COLOR_PALETTE.map((c) => {
+      {palette.map((c) => {
         const active = selected === c.value
         return (
           <button key={c.value} onClick={() => onSelect(c.value)} title={c.label}
@@ -138,7 +163,7 @@ function ColorPalette({ selected, onSelect }) {
                 backgroundColor: c.value,
                 boxShadow: active
                   ? '0 0 14px rgba(139,92,246,0.65)'
-                  : ['#FFFFFF','#FFF8E7','#FBCFE8'].includes(c.value)
+                  : /^#[fF]{6}|^#[fF4][fF4][eEdD]/.test(c.value)
                     ? 'inset 0 0 0 1px rgba(255,255,255,0.2)'
                     : undefined,
               }}
@@ -185,27 +210,65 @@ const PaletteIcon = () => (
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function ShirtConfigurator() {
   const [activeModel,   setActiveModel]   = useState(MODELS[0])
-  const [shirtColor,    setShirtColor]    = useState('#3B82F6')
+  const [shirtColor,    setShirtColor]    = useState('#000000')
   const [side,          setSide]          = useState('frente')
+  const [bgThemeId,     setBgThemeId]     = useState('space')
+  const [customBgImage, setCustomBgImage] = useState(null)
+  const [colorPalette,  setColorPalette]  = useState(COLOR_PALETTE_FALLBACK)
+  const activeBg = BG_THEMES.find((t) => t.id === bgThemeId) || BG_THEMES[0]
 
-  // Estado unificado de elementos do canvas (texto + imagem)
-  const [elements,      setElements]      = useState([])
-  const [selectedId,    setSelectedId]    = useState(null)
+  // Carrega cores do Supabase
+  useEffect(() => {
+    supabase
+      .from('cores')
+      .select('id, nome, hex')
+      .eq('active', true)
+      .order('nome')
+      .then(({ data }) => {
+        if (data?.length) {
+          setColorPalette(data.map((c) => ({ label: c.nome, value: c.hex })))
+          setShirtColor(data.find((c) => c.nome === 'Preto')?.hex ?? data[0].hex)
+        }
+      })
+  }, [])
+
+  const bgImageRef = useRef(null)
+  const handleBgImage = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      setCustomBgImage(ev.target.result)
+      setBgThemeId('custom')
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
+  const viewportBgStyle = bgThemeId === 'custom' && customBgImage
+    ? { backgroundImage: `url(${customBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { background: activeBg.bg }
+
+  // Estado único de elementos do canvas (textura compartilhada frente+costas)
+  const [elements,   setElements]   = useState([])
+  const [selectedId, setSelectedId] = useState(null)
 
   // Configuração do próximo texto a adicionar
-  const [textInput,     setTextInput]     = useState('')
-  const [textColor,     setTextColor]     = useState('#FFFFFF')
-  const [textSize,      setTextSize]      = useState(36)
+  const [textInput,  setTextInput]  = useState('')
+  const [textColor,  setTextColor]  = useState('#FFFFFF')
+  const [textSize,   setTextSize]   = useState(36)
 
-  const [activeTab,     setActiveTab]     = useState('roupa')
+  const [activeTab,  setActiveTab]  = useState('roupa')
 
-  // Canvas e versão para sync com o material 3D
-  const canvasElRef    = useRef(null)
+  // Canvas único + versão para sync com o material 3D
+  const canvasElRef = useRef(null)
   const [canvasVersion, setCanvasVersion] = useState(0)
 
-  const fileRef = useRef(null)
+  const fileRef   = useRef(null)
+  const threeRef  = useRef(null)   // { gl, camera, controls, ... } exposto pelo CanvasCapture
+  const [capturing, setCapturing] = useState(false)
 
-  // Recebe o canvas exportado pelo KonvaEditor
+  // Recebe o canvas do KonvaEditor
   const handleKonvaCanvas = useCallback((canvas) => {
     canvasElRef.current = canvas
     setCanvasVersion((v) => v + 1)
@@ -213,9 +276,7 @@ export default function ShirtConfigurator() {
 
   // Atualiza atributos de um elemento
   const handleElementChange = useCallback((id, attrs) => {
-    setElements((prev) =>
-      prev.map((el) => el.id === id ? { ...el, ...attrs } : el)
-    )
+    setElements((prev) => prev.map((el) => el.id === id ? { ...el, ...attrs } : el))
   }, [])
 
   // Remove elemento
@@ -224,7 +285,7 @@ export default function ShirtConfigurator() {
     setSelectedId((cur) => cur === id ? null : cur)
   }, [])
 
-  // Adiciona texto ao canvas e vai para a aba CANVAS
+  // Adiciona texto e vai para a aba CANVAS
   const addText = () => {
     if (!textInput.trim()) return
     const newEl = {
@@ -264,22 +325,109 @@ export default function ShirtConfigurator() {
       setActiveTab('canvas')
     }
     reader.readAsDataURL(file)
-    // Reset input so same file can be re-uploaded
     e.target.value = ''
   }
 
-  const sendWhatsApp = () => {
+  // Captura frente + costas do 3D e compartilha/baixa antes de abrir o WhatsApp
+  const sendWhatsApp = async () => {
     const textEls = elements.filter((el) => el.type === 'text')
     const imgEls  = elements.filter((el) => el.type === 'image')
     const msg =
       `Olá! Personalizei uma peça no site Cometa Personalização e gostaria de fazer um pedido.\n\n` +
       `Produto: ${activeModel.label}\n` +
-      `Cor: ${shirtColor}\n` +
-      `Lado: ${side === 'frente' ? 'Frente' : 'Costas'}` +
+      `Cor: ${shirtColor}` +
       (textEls.length ? `\nTextos: ${textEls.map((t) => `"${t.text}"`).join(', ')}` : '') +
       (imgEls.length  ? `\nImagens: ${imgEls.length}` : '') +
-      `\n\nAguardo o contato!`
-    window.open(`https://wa.me/5511999999999?text=${encodeURIComponent(msg)}`, '_blank')
+      `\n\n📎 Mockup frente e costas enviado automaticamente!\n\nAguardo o contato!`
+
+    const waUrl = `https://wa.me/5585987208308?text=${encodeURIComponent(msg)}`
+
+    // Sem acesso ao renderer → apenas abre o WA
+    if (!threeRef.current?.gl) {
+      window.open(waUrl, '_blank')
+      return
+    }
+
+    setCapturing(true)
+
+    const { gl, camera, controls } = threeRef.current
+
+    // Função para mover câmera para ângulo theta
+    const setAngle = (theta) => {
+      const target = controls ? controls.target.clone() : new THREE.Vector3(0, -0.1, 0)
+      const offset = camera.position.clone().sub(target)
+      const sph    = new THREE.Spherical().setFromVector3(offset)
+      sph.theta    = theta
+      const newPos = new THREE.Vector3().setFromSpherical(sph).add(target)
+      camera.position.copy(newPos)
+      camera.lookAt(target)
+      if (controls) controls.update()
+    }
+
+    // Converte dataURL em File
+    const toFile = (dataUrl, name) => {
+      const [header, data] = dataUrl.split(',')
+      const mime  = header.match(/:(.*?);/)[1]
+      const bstr  = atob(data)
+      const u8arr = new Uint8Array(bstr.length)
+      for (let i = 0; i < bstr.length; i++) u8arr[i] = bstr.charCodeAt(i)
+      return new File([u8arr], name, { type: mime })
+    }
+
+    // Baixa um arquivo pelo nome
+    const downloadFile = (file) => {
+      const url = URL.createObjectURL(file)
+      const a   = document.createElement('a')
+      a.href     = url
+      a.download = file.name
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    }
+
+    // Ângulo original para restaurar
+    const originalAngle = side === 'costas' ? Math.PI : 0
+
+    try {
+      // 1. Captura frente
+      setAngle(0)
+      await new Promise((r) => setTimeout(r, 400))
+      const frontDataUrl = gl.domElement.toDataURL('image/png')
+
+      // 2. Captura costas
+      setAngle(Math.PI)
+      await new Promise((r) => setTimeout(r, 500))
+      const backDataUrl = gl.domElement.toDataURL('image/png')
+
+      // 3. Restaura ângulo original
+      setAngle(originalAngle)
+
+      const frenteFile = toFile(frontDataUrl, 'mockup-frente.png')
+      const costasFile = toFile(backDataUrl,  'mockup-costas.png')
+
+      // 4. Tenta Web Share API (mobile)
+      if (navigator.canShare?.({ files: [frenteFile, costasFile] })) {
+        try {
+          await navigator.share({ files: [frenteFile, costasFile], text: msg })
+          setCapturing(false)
+          return
+        } catch {
+          // fallthrough para download
+        }
+      }
+
+      // 5. Fallback: baixa os dois arquivos e abre WA
+      downloadFile(frenteFile)
+      await new Promise((r) => setTimeout(r, 300))
+      downloadFile(costasFile)
+      await new Promise((r) => setTimeout(r, 400))
+      window.open(waUrl, '_blank')
+    } catch {
+      window.open(waUrl, '_blank')
+    } finally {
+      setCapturing(false)
+    }
   }
 
   const TABS = [
@@ -299,22 +447,52 @@ export default function ShirtConfigurator() {
     <div className="flex flex-col lg:flex-row w-full h-full">
 
       {/* ══ 3D Viewport ═══════════════════════════════════════════════════════ */}
-      <div className="relative w-full lg:flex-1 h-[42vh] lg:h-full
-                      bg-[#07071a] lg:rounded-2xl overflow-hidden flex-shrink-0">
-        <div className="absolute inset-0 pointer-events-none">
+      <div className={`relative w-full lg:flex-1 lg:h-full
+                      lg:rounded-2xl overflow-hidden flex-shrink-0
+                      transition-all duration-300
+                      ${activeTab === 'canvas' ? 'h-[32vh]' : 'h-[38vh]'}`}
+           style={viewportBgStyle}>
+
+        {/* Fundo espacial animado */}
+        {activeBg.space && (
+          <div className="absolute inset-0 pointer-events-none z-0">
+            <SpaceBackground bgColor="#0c0c22" />
+          </div>
+        )}
+
+        {/* Glow central */}
+        <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
                           w-64 h-64 bg-nebula-purple/10 rounded-full blur-3xl" />
         </div>
 
+        {/* Watermark nome da loja */}
+        <div className="absolute inset-0 pointer-events-none z-0 flex flex-col items-center justify-center gap-3 select-none">
+          <span
+            className="font-black uppercase tracking-[0.3em] text-6xl md:text-8xl"
+            style={{ color: activeBg.id === 'white' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)' }}
+          >
+            COMETA
+          </span>
+          <span
+            className="font-bold uppercase tracking-[0.6em] text-sm md:text-xl"
+            style={{ color: activeBg.id === 'white' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)' }}
+          >
+            PERSONALIZAÇÃO
+          </span>
+        </div>
+
         <Canvas
-          camera={{ position: [0, 0, 3.5], fov: 42 }}
-          gl={{ antialias: true, alpha: true }}
+          camera={{ position: [0, -0.1, 3.8], fov: 40 }}
+          gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true }}
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         >
-          <ambientLight intensity={0.25} />
-          <directionalLight position={[4, 6, 5]}   intensity={1.2} castShadow />
-          <directionalLight position={[-4, -2, -4]} intensity={0.2} color="#a855f7" />
-          <pointLight       position={[0, 3, 3]}    intensity={0.5} color="#8B5CF6" />
+          <ambientLight intensity={0.38} />
+          <directionalLight position={[4,  6,  5]}  intensity={0.75} castShadow />
+          <directionalLight position={[-4, 6, -5]}  intensity={0.75} />
+          <directionalLight position={[-4, -2, -4]} intensity={0.10} color="#a855f7" />
+          <pointLight       position={[0,  3,  3]}  intensity={0.14} color="#8B5CF6" />
+          <pointLight       position={[0,  3, -3]}  intensity={0.14} color="#8B5CF6" />
 
           <Suspense fallback={<GeometricFallback color={shirtColor} />}>
             <GLBShirt
@@ -326,38 +504,45 @@ export default function ShirtConfigurator() {
           </Suspense>
 
           <OrbitControls
+            makeDefault
             enablePan={false}
+            target={[0, -0.1, 0]}
             minDistance={1.8}
             maxDistance={6}
             minPolarAngle={Math.PI / 2}
             maxPolarAngle={Math.PI / 2}
           />
-          <Environment preset="city" />
+          <CameraRotator side={side} />
+          <CanvasCapture threeRef={threeRef} />
+          {/* Environment sempre neutro — fundo visual não afeta iluminação da camisa */}
+          <Environment preset="studio" environmentIntensity={0} />
         </Canvas>
 
-        {/* Nome do modelo */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 pointer-events-none">
-          <span className="text-[10px] text-gray-500 bg-black/40 backdrop-blur-sm
-                           px-3 py-1 rounded-full tracking-widest uppercase select-none">
+        {/* Nome do modelo — lateral esquerda */}
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none select-none"
+             style={{ writingMode: 'vertical-rl', transform: 'translateY(-50%) rotate(180deg)' }}>
+          <span className="text-[9px] text-gray-500 bg-black/40 backdrop-blur-sm
+                           px-2 py-2 rounded-full tracking-widest uppercase">
             {activeModel.label}
           </span>
         </div>
 
-        {/* Hint */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none
-                        text-[11px] text-gray-500 tracking-widest uppercase
-                        flex items-center gap-1.5 select-none">
-          <svg className="w-3.5 h-3.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Hint — lateral direita */}
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none select-none
+                        flex flex-col items-center gap-1"
+             style={{ writingMode: 'vertical-rl' }}>
+          <svg className="w-3 h-3 text-gray-600 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Arraste para girar
+          <span className="text-[9px] text-gray-600 tracking-widest uppercase">Arraste</span>
         </div>
       </div>
 
       {/* ══ Painel de Controles ════════════════════════════════════════════════ */}
-      <div className="w-full lg:w-[360px] xl:w-[400px] flex flex-col flex-shrink-0
+      <div className="w-full lg:w-[360px] xl:w-[400px] flex flex-col
                       bg-[#0b0b1e] lg:rounded-2xl lg:ml-4
-                      rounded-t-3xl lg:rounded-t-2xl -mt-5 lg:mt-0 relative z-10 overflow-hidden">
+                      rounded-t-3xl lg:rounded-t-2xl -mt-5 lg:mt-0 relative z-10
+                      min-h-0 flex-1 lg:flex-none overflow-hidden">
 
         {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-3 pb-1 lg:hidden">
@@ -380,13 +565,14 @@ export default function ShirtConfigurator() {
           ))}
         </div>
 
-        {/* KonvaEditor sempre montado (oculto fora da aba CANVAS) */}
-        <div style={{ display: activeTab === 'canvas' ? 'block' : 'none' }}
-             className="flex-1 overflow-y-auto px-4 py-4 scrollbar-none">
+        {/* KonvaEditors sempre montados (ocultos fora da aba CANVAS) */}
+        <div style={{ display: activeTab === 'canvas' ? 'block' : 'none', scrollbarWidth: 'thin', scrollbarColor: 'rgba(139,92,246,0.3) transparent' }}
+             className="flex-1 overflow-y-auto px-4 py-4 min-h-0">
           <div className="bg-[#12122a] rounded-2xl p-3 border border-white/5">
             <p className="text-[11px] font-bold tracking-widest text-nebula-purple mb-3 px-1">
               EDITOR DE CANVAS
             </p>
+
             <KonvaEditor
               shirtColor={shirtColor}
               elements={elements}
@@ -405,7 +591,8 @@ export default function ShirtConfigurator() {
         </div>
 
         {/* Conteúdo rolável das outras abas */}
-        <div className={`flex-1 overflow-y-auto px-4 py-4 space-y-3 scrollbar-none ${activeTab === 'canvas' ? 'hidden' : ''}`}>
+        <div className={`flex-1 overflow-y-auto px-4 py-4 space-y-3 min-h-0 ${activeTab === 'canvas' ? 'hidden' : ''}`}
+             style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(139,92,246,0.3) transparent' }}>
           <AnimatePresence mode="wait">
 
             {/* ── ROUPA ─────────────────────────────────────────────────────── */}
@@ -414,6 +601,86 @@ export default function ShirtConfigurator() {
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
                 className="space-y-3">
+
+                <SectionCard
+                  label="FUNDO DO CENÁRIO"
+                  description="Escolha o tema de fundo do visualizador 3D"
+                  icon={<svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+                >
+                  {/* Input oculto para imagem de fundo */}
+                  <input
+                    ref={bgImageRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleBgImage}
+                  />
+
+                  <div className="grid grid-cols-4 gap-2">
+                    {BG_THEMES.map((theme) => {
+                      const active = bgThemeId === theme.id
+                      return (
+                        <button
+                          key={theme.id}
+                          onClick={() => setBgThemeId(theme.id)}
+                          className={`flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-200
+                            ${active ? 'ring-2 ring-nebula-purple ring-offset-1 ring-offset-[#12122a]' : 'hover:bg-white/5'}`}
+                        >
+                          <div
+                            className="w-10 h-10 rounded-lg border border-white/10 flex-shrink-0"
+                            style={{ background: theme.bg }}
+                          >
+                            {theme.space && (
+                              <div className="w-full h-full rounded-lg flex items-center justify-center">
+                                <span className="text-lg">✦</span>
+                              </div>
+                            )}
+                          </div>
+                          <span className={`text-[9px] font-bold tracking-wide uppercase leading-tight text-center
+                            ${active ? 'text-nebula-purple' : 'text-gray-500'}`}>
+                            {theme.label}
+                          </span>
+                        </button>
+                      )
+                    })}
+
+                    {/* Botão imagem personalizada */}
+                    <button
+                      onClick={() => bgImageRef.current?.click()}
+                      className={`flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-200
+                        ${bgThemeId === 'custom' ? 'ring-2 ring-nebula-purple ring-offset-1 ring-offset-[#12122a]' : 'hover:bg-white/5'}`}
+                    >
+                      <div
+                        className="w-10 h-10 rounded-lg border border-white/10 flex-shrink-0 overflow-hidden flex items-center justify-center"
+                        style={
+                          customBgImage
+                            ? { backgroundImage: `url(${customBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                            : { background: '#1e1e40' }
+                        }
+                      >
+                        {!customBgImage && (
+                          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className={`text-[9px] font-bold tracking-wide uppercase leading-tight text-center
+                        ${bgThemeId === 'custom' ? 'text-nebula-purple' : 'text-gray-500'}`}>
+                        {customBgImage ? 'Minha img' : 'Subir img'}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Limpar imagem personalizada */}
+                  {customBgImage && (
+                    <button
+                      onClick={() => { setCustomBgImage(null); setBgThemeId('dark') }}
+                      className="mt-2 text-[10px] text-red-400/70 hover:text-red-400 transition-colors"
+                    >
+                      ✕ Remover imagem de fundo
+                    </button>
+                  )}
+                </SectionCard>
 
                 <SectionCard
                   label="MODELO 3D"
@@ -474,7 +741,7 @@ export default function ShirtConfigurator() {
                 </SectionCard>
 
                 <SectionCard label="COR DA PEÇA" description="Toque em uma cor para aplicar à peça" icon={<PaletteIcon />} gradient>
-                  <ColorPalette selected={shirtColor} onSelect={setShirtColor} />
+                  <ColorPalette palette={colorPalette} selected={shirtColor} onSelect={setShirtColor} />
                   <div className="mt-4 pt-4 border-t border-white/8 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl border border-white/20 overflow-hidden flex-shrink-0">
                       <input type="color" value={shirtColor} onChange={(e) => setShirtColor(e.target.value)}
@@ -537,7 +804,7 @@ export default function ShirtConfigurator() {
                 </SectionCard>
 
                 <SectionCard label="COR DO TEXTO" description="Selecione a cor inicial do texto" icon={<PaletteIcon />} gradient>
-                  <ColorPalette selected={textColor} onSelect={setTextColor} />
+                  <ColorPalette palette={colorPalette} selected={textColor} onSelect={setTextColor} />
                 </SectionCard>
 
               </motion.div>
@@ -587,9 +854,8 @@ export default function ShirtConfigurator() {
                 >
                   <div className="space-y-2 text-sm">
                     {[
-                      { label: 'Modelo',  value: activeModel.label },
-                      { label: 'Lado',    value: side === 'frente' ? 'Frente' : 'Costas' },
-                      { label: 'Cor',     value: (
+                      { label: 'Modelo',         value: activeModel.label },
+                      { label: 'Cor',            value: (
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: shirtColor }} />
                           <span>{shirtColor.toUpperCase()}</span>
@@ -631,17 +897,37 @@ export default function ShirtConfigurator() {
           </AnimatePresence>
         </div>
 
-        {/* Botão WhatsApp */}
-        <div className="px-4 py-4 border-t border-white/8 bg-[#0b0b1e]">
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+        {/* Botão WhatsApp — oculto na aba CANVAS para dar mais espaço */}
+        <div className={`px-4 py-3 border-t border-white/8 bg-[#0b0b1e] ${activeTab === 'canvas' ? 'hidden' : ''}`}>
+          <motion.button
+            whileHover={capturing ? {} : { scale: 1.02 }}
+            whileTap={capturing ? {} : { scale: 0.97 }}
             onClick={sendWhatsApp}
-            className="w-full btn-primary flex items-center justify-center gap-2.5 py-4 text-sm font-bold">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.555 4.122 1.524 5.855L0 24l6.335-1.498C8.05 23.447 9.99 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818c-1.898 0-3.667-.514-5.177-1.409l-.371-.22-3.76.889.902-3.666-.242-.382A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z" />
-            </svg>
-            Enviar Pedido pelo WhatsApp
+            disabled={capturing}
+            className={`w-full btn-primary flex items-center justify-center gap-2 py-2.5 text-xs font-bold
+                        transition-opacity ${capturing ? 'opacity-60 cursor-wait' : ''}`}
+          >
+            {capturing ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Capturando mockups…
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.555 4.122 1.524 5.855L0 24l6.335-1.498C8.05 23.447 9.99 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818c-1.898 0-3.667-.514-5.177-1.409l-.371-.22-3.76.889.902-3.666-.242-.382A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z" />
+                </svg>
+                Enviar Pedido pelo WhatsApp
+              </>
+            )}
           </motion.button>
+          <p className="text-center text-[10px] text-gray-600 mt-2">
+            Mockup frente e costas baixado automaticamente ao enviar
+          </p>
         </div>
       </div>
     </div>

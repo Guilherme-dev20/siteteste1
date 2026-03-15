@@ -1,11 +1,12 @@
 import Head from 'next/head'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FloatingButtons from '../components/FloatingButtons'
 import ProductCard from '../components/ProductCard'
-import { products, categories, sortOptions } from '../data/products'
+import { supabase } from '../lib/supabase'
+import { sortOptions } from '../data/products'
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -13,19 +14,40 @@ const pageVariants = {
   exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
 }
 
-export default function Produtos() {
-  const [activeCategory, setActiveCategory] = useState('Todos')
-  const [activeSort, setActiveSort] = useState('Mais Populares')
-  const [search, setSearch] = useState('')
+function mapProduto(p) {
+  return {
+    id:          p.id,
+    name:        p.nome,
+    category:    p.categoria || 'Produto',
+    placeholder: p.imagem_url,
+    badge:       p.badge || null,
+    price:       p.preco ? `R$ ${Number(p.preco).toFixed(2).replace('.', ',')}` : 'Sob consulta',
+    popular:     true,
+    description: p.descricao,
+  }
+}
 
-  const filtered = products
-    .filter((p) => {
-      const matchCat = activeCategory === 'Todos' || p.category === activeCategory
-      const matchSearch = p.name.toLowerCase().includes(search.toLowerCase())
-      return matchCat && matchSearch
-    })
+export default function Produtos() {
+  const [allProducts, setAllProducts] = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [activeSort, setActiveSort]   = useState('A-Z')
+  const [search, setSearch]           = useState('')
+
+  useEffect(() => {
+    supabase
+      .from('produtos')
+      .select('*')
+      .eq('active', true)
+      .order('nome')
+      .then(({ data }) => {
+        if (data) setAllProducts(data.map(mapProduto))
+        setLoading(false)
+      })
+  }, [])
+
+  const filtered = allProducts
+    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
-      if (activeSort === 'Mais Populares') return b.popular - a.popular
       if (activeSort === 'A-Z') return a.name.localeCompare(b.name)
       return 0
     })
@@ -67,7 +89,6 @@ export default function Produtos() {
 
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
-          {/* Search */}
           <div className="flex-1">
             <input
               type="text"
@@ -79,59 +100,48 @@ export default function Produtos() {
                          focus:shadow-purple-glow transition-all duration-300"
             />
           </div>
-
-          {/* Sort */}
           <select
             value={activeSort}
             onChange={(e) => setActiveSort(e.target.value)}
             className="bg-space-dark border border-nebula-purple/30 text-white rounded-full px-6 py-3
                        focus:outline-none focus:border-nebula-purple transition-all duration-300 cursor-pointer"
           >
-            {sortOptions.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
+            <option value="A-Z">A-Z</option>
+            <option value="Z-A">Z-A</option>
           </select>
         </div>
 
-        {/* Category Pills */}
-        <div className="flex flex-wrap gap-3 mb-10">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-5 py-2 rounded-full font-medium text-sm transition-all duration-300
-                ${activeCategory === cat
-                  ? 'bg-nebula-purple text-white shadow-purple-glow'
-                  : 'border border-nebula-purple/40 text-gray-400 hover:border-nebula-purple hover:text-white'
-                }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
         {/* Products Grid */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeCategory + search}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-          >
-            {filtered.length > 0 ? (
-              filtered.map((product, i) => (
-                <ProductCard key={product.id} product={product} index={i} />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-20 text-gray-500">
-                <p className="text-xl">Nenhum produto encontrado.</p>
-                <p className="mt-2 text-sm">Tente uma busca diferente.</p>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden animate-pulse"
+                style={{ background: '#111122', border: '1px solid rgba(139,92,246,0.1)', height: 320 }} />
+            ))}
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={search}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            >
+              {filtered.length > 0 ? (
+                filtered.map((product, i) => (
+                  <ProductCard key={product.id} product={product} index={i} />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-20 text-gray-500">
+                  <p className="text-xl">Nenhum produto encontrado.</p>
+                  <p className="mt-2 text-sm">Tente uma busca diferente.</p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        )}
       </main>
 
       <Footer />

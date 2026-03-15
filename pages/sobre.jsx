@@ -146,7 +146,7 @@ export default function Sobre() {
               Personalizar Agora
             </a>
             <a
-              href="https://wa.me/5511999999999?text=Olá, vim pelo site Cometa Personalização e gostaria de saber mais!"
+              href="https://wa.me/5585987208308?text=Olá, vim pelo site Cometa Personalização e gostaria de saber mais!"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-outline"

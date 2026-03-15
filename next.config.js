@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['three'],
   images: {
-    domains: ['via.placeholder.com', 'picsum.photos'],
+    domains: ['via.placeholder.com', 'picsum.photos', 'ydhmwqdeofhdxkdfytou.supabase.co'],
   },
   webpack: (config) => {
     config.module.rules.push({

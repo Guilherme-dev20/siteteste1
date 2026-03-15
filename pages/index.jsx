@@ -3,11 +3,15 @@ import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FloatingButtons from '../components/FloatingButtons'
+import Ticker from '../components/Ticker'
 import Hero from '../sections/Hero'
 import Campaign from '../sections/Campaign'
 import FeaturedProducts from '../sections/FeaturedProducts'
 import Themes from '../sections/Themes'
 import HowItWorks from '../sections/HowItWorks'
+import WhyUs from '../sections/WhyUs'
+import Testimonials from '../sections/Testimonials'
+import FinalCTA from '../sections/FinalCTA'
 
 const pageVariants = {
   initial: { opacity: 0 },
@@ -31,10 +35,14 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
+        <Ticker />
         <Campaign />
         <FeaturedProducts />
         <Themes />
         <HowItWorks />
+        <WhyUs />
+        <Testimonials />
+        <FinalCTA />
       </main>
       <Footer />
       <FloatingButtons />

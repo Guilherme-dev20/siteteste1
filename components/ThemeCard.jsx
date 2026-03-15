@@ -1,77 +1,97 @@
 import { motion } from 'framer-motion'
 
-export default function ThemeCard({ theme, index = 0, isActive = false, onClick }) {
+export default function ThemeCard({ theme, index = 0, total = 6, featured = false }) {
+  const num = String(index + 1).padStart(2, '0')
+  const tot = String(total).padStart(2, '0')
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
-      whileHover={{ y: -6 }}
-      onClick={onClick}
-      className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300
-        ${isActive
-          ? 'ring-2 shadow-purple-glow-lg'
-          : 'hover:shadow-purple-glow'
-        }`}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.45, delay: index * 0.06 }}
+      className="group relative overflow-hidden rounded-2xl cursor-pointer w-full"
       style={{
-        ringColor: theme.color,
-        borderColor: isActive ? theme.color : 'transparent',
+        aspectRatio: featured ? '16/7' : '16/9',
+        border: '1px solid rgba(255,255,255,0.06)',
       }}
+      whileHover={{ borderColor: `${theme.color}55` }}
     >
-      {/* Background Image */}
-      <div className="aspect-video relative overflow-hidden">
+      {/* Image */}
+      <div className="absolute inset-0">
         <img
           src={theme.cover}
           alt={theme.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          style={{ filter: isActive ? 'brightness(0.5)' : 'brightness(0.4)' }}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          style={{ filter: 'brightness(0.38)' }}
           loading="lazy"
         />
-        {/* Gradient overlay */}
+      </div>
+
+      {/* Gradient overlay — stronger at bottom */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(to top, rgba(5,5,16,0.92) 0%, rgba(5,5,16,0.3) 50%, transparent 100%)',
+        }}
+      />
+
+      {/* Hover color tint */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{ background: `${theme.color}12` }}
+      />
+
+      {/* Top-left: number */}
+      <div className="absolute top-4 left-4 z-10">
+        <span className="text-[10px] font-bold tracking-widest text-white/40 font-mono">
+          {num}/{tot}
+        </span>
+      </div>
+
+      {/* Top-right: icon */}
+      <div className="absolute top-3 right-4 z-10 text-xl opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+        {theme.icon}
+      </div>
+
+      {/* Bottom content */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5 z-10">
+        {/* Colored accent line */}
         <div
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(135deg, ${theme.color}40 0%, rgba(5,5,16,0.85) 100%)`,
-          }}
-        />
-      </div>
-
-      {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end p-6">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-3xl">{theme.icon}</span>
-          <h3 className="text-white font-bold text-xl font-display">{theme.name}</h3>
-        </div>
-        <p className="text-gray-300 text-sm mb-3 leading-relaxed">
-          {theme.description}
-        </p>
-        <div className="flex items-center justify-between">
-          <span
-            className="text-xs font-semibold px-3 py-1 rounded-full"
-            style={{ backgroundColor: `${theme.color}30`, color: theme.color, border: `1px solid ${theme.color}40` }}
-          >
-            {theme.count} produtos
-          </span>
-          <motion.span
-            animate={{ x: isActive ? 4 : 0 }}
-            className="text-sm font-medium"
-            style={{ color: theme.color }}
-          >
-            {isActive ? 'Ver menos ←' : 'Ver produtos →'}
-          </motion.span>
-        </div>
-      </div>
-
-      {/* Active indicator */}
-      {isActive && (
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          className="absolute bottom-0 left-0 right-0 h-1 origin-left"
+          className="w-8 h-[2px] rounded-full mb-2.5 transition-all duration-300 group-hover:w-14"
           style={{ backgroundColor: theme.color }}
         />
-      )}
+
+        <div className="flex items-end justify-between gap-3">
+          <h3
+            className="font-display font-black text-white uppercase tracking-wide leading-none"
+            style={{ fontSize: featured ? 'clamp(1.2rem,2.5vw,1.75rem)' : 'clamp(0.85rem,1.6vw,1.1rem)' }}
+          >
+            {theme.name}
+          </h3>
+
+          <span
+            className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex-shrink-0 mb-0.5"
+            style={{
+              background: `${theme.color}20`,
+              color: theme.color,
+              border: `1px solid ${theme.color}40`,
+            }}
+          >
+            {theme.count} itens
+          </span>
+        </div>
+
+        {featured && (
+          <p className="text-gray-400 text-xs mt-1.5 line-clamp-1">{theme.description}</p>
+        )}
+      </div>
+
+      {/* Bottom colored border on hover */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[2px] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-400"
+        style={{ backgroundColor: theme.color }}
+      />
     </motion.div>
   )
 }

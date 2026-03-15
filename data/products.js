@@ -7,6 +7,8 @@ export const products = [
     image: '/assets/products/camisa-galaxia.jpg',
     placeholder: 'https://picsum.photos/seed/camisa1/800/800',
     popular: true,
+    badge: 'Mais Vendido',
+    price: 'A partir de R$ 49,90',
     description: 'Camisa com estampa galáctica exclusiva, tingimento especial com efeito nebulosa.',
   },
   {
@@ -17,6 +19,8 @@ export const products = [
     image: '/assets/products/camisa-spiderman.jpg',
     placeholder: 'https://picsum.photos/seed/camisa2/800/800',
     popular: true,
+    badge: 'Popular',
+    price: 'A partir de R$ 49,90',
     description: 'Camisa oficial com arte do Homem-Aranha, 100% algodão premium.',
   },
   {
@@ -27,6 +31,8 @@ export const products = [
     image: '/assets/products/caneca-espacial.jpg',
     placeholder: 'https://picsum.photos/seed/caneca1/800/800',
     popular: true,
+    badge: 'Popular',
+    price: 'A partir de R$ 29,90',
     description: 'Caneca de cerâmica com arte espacial, resistente à máquina de lavar.',
   },
   {
@@ -37,6 +43,8 @@ export const products = [
     image: '/assets/products/copo-naruto.jpg',
     placeholder: 'https://picsum.photos/seed/copo1/800/800',
     popular: false,
+    badge: null,
+    price: 'A partir de R$ 24,90',
     description: 'Copo personalizado com personagens de Naruto Shippuden.',
   },
   {
@@ -47,6 +55,8 @@ export const products = [
     image: '/assets/products/camisa-dragonball.jpg',
     placeholder: 'https://picsum.photos/seed/camisa3/800/800',
     popular: true,
+    badge: 'Mais Vendido',
+    price: 'A partir de R$ 49,90',
     description: 'Camisa com estampa dos personagens de Dragon Ball Z.',
   },
   {
@@ -57,6 +67,8 @@ export const products = [
     image: '/assets/products/xicara-magica.jpg',
     placeholder: 'https://picsum.photos/seed/xicara1/800/800',
     popular: false,
+    badge: 'Novo',
+    price: 'A partir de R$ 19,90',
     description: 'Xícara personalizada ideal para presentes de datas especiais.',
   },
   {
@@ -67,6 +79,8 @@ export const products = [
     image: '/assets/products/camisa-minecraft.jpg',
     placeholder: 'https://picsum.photos/seed/camisa4/800/800',
     popular: true,
+    badge: 'Popular',
+    price: 'A partir de R$ 49,90',
     description: 'Camisa pixelada com arte de Minecraft, perfeita para gamers.',
   },
   {
@@ -77,6 +91,8 @@ export const products = [
     image: '/assets/products/caneca-batman.jpg',
     placeholder: 'https://picsum.photos/seed/caneca2/800/800',
     popular: false,
+    badge: null,
+    price: 'A partir de R$ 29,90',
     description: 'Caneca do Batman com logo do cavaleiro das trevas.',
   },
 ]

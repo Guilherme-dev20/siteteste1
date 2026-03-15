@@ -1,11 +1,26 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
+function CometIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="8" r="5" fill="#a855f7" />
+      <line x1="17" y1="11" x2="2" y2="26" stroke="url(#footerCometGrad)" strokeWidth="2.5" strokeLinecap="round"/>
+      <defs>
+        <linearGradient id="footerCometGrad" x1="17" y1="11" x2="2" y2="26" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#a855f7"/>
+          <stop offset="1" stopColor="#a855f7" stopOpacity="0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+}
+
 const footerLinks = {
   Navegação: [
-    { label: 'Home', href: '/' },
+    { label: 'Início', href: '/' },
     { label: 'Produtos', href: '/produtos' },
-    { label: 'Personalizar', href: '/personalizar' },
+    { label: 'Designer 3D', href: '/personalizar' },
     { label: 'Temas', href: '/temas' },
   ],
   'Sobre Nós': [
@@ -16,29 +31,32 @@ const footerLinks = {
 
 export default function Footer() {
   return (
-    <footer className="border-t border-nebula-purple/20 bg-space-black/60 backdrop-blur-sm">
+    <footer
+      className="border-t"
+      style={{ borderColor: 'rgba(168,85,247,0.2)', background: 'rgba(10,10,15,0.9)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="md:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <span className="text-3xl">☄️</span>
+            <Link href="/" className="flex items-center gap-2.5 mb-4">
+              <CometIcon />
               <span className="font-display font-bold text-xl text-white">
-                Cometa <span className="text-gradient">Personalização</span>
+                Cometa <span className="text-purple-400">Personalização</span>
               </span>
             </Link>
             <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
-              Transformamos suas ideias em produtos únicos. Camisas, canecas, copos e muito mais,
-              personalizados com a sua identidade.
+              Transformamos suas ideias em produtos únicos. Camisas personalizadas com designer 3D
+              e pedido direto pelo WhatsApp.
             </p>
             <div className="flex gap-4 mt-6">
+              {/* WhatsApp */}
               <a
-                href="https://wa.me/5511999999999"
+                href="https://wa.me/5585987208308"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-[#25D366]/10 border border-[#25D366]/30
-                           flex items-center justify-center text-[#25D366] hover:bg-[#25D366]/20
-                           transition-all duration-300 hover:scale-110"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-[#25D366] transition-all duration-300 hover:scale-110"
+                style={{ background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.3)' }}
                 aria-label="WhatsApp"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -46,13 +64,13 @@ export default function Footer() {
                   <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.555 4.122 1.524 5.855L0 24l6.335-1.498C8.05 23.447 9.99 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818c-1.898 0-3.667-.514-5.177-1.409l-.371-.22-3.76.889.902-3.666-.242-.382A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z" />
                 </svg>
               </a>
+              {/* Instagram */}
               <a
                 href="https://instagram.com/cometapersonalizacao"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-[#E1306C]/10 border border-[#E1306C]/30
-                           flex items-center justify-center text-[#E1306C] hover:bg-[#E1306C]/20
-                           transition-all duration-300 hover:scale-110"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-[#E1306C] transition-all duration-300 hover:scale-110"
+                style={{ background: 'rgba(225,48,108,0.1)', border: '1px solid rgba(225,48,108,0.3)' }}
                 aria-label="Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -65,13 +83,13 @@ export default function Footer() {
           {/* Links */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h3 className="text-white font-semibold mb-4 font-display">{title}</h3>
+              <h3 className="text-white font-bold mb-4 font-display uppercase tracking-wider text-sm">{title}</h3>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-gray-500 hover:text-nebula-purple text-sm transition-colors duration-200"
+                      className="text-gray-500 hover:text-purple-400 text-sm transition-colors duration-200"
                     >
                       {link.label}
                     </Link>
@@ -82,13 +100,20 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-nebula-purple/10 mt-12 pt-8 flex flex-col md:flex-row
-                        justify-between items-center gap-4">
+        <div
+          className="mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4"
+          style={{ borderTop: '1px solid rgba(168,85,247,0.1)' }}
+        >
           <p className="text-gray-600 text-sm text-center">
             © {new Date().getFullYear()} Cometa Personalização. Todos os direitos reservados.
           </p>
-          <p className="text-gray-700 text-xs">
-            Feito com ☄️ para deixar sua marca no universo
+          <p className="text-gray-700 text-xs flex items-center gap-1.5">
+            Feito com
+            <svg width="14" height="14" viewBox="0 0 28 28" fill="none" style={{ display: 'inline' }}>
+              <circle cx="20" cy="8" r="5" fill="#a855f7" />
+              <line x1="17" y1="11" x2="2" y2="26" stroke="#a855f7" strokeWidth="2.5" strokeLinecap="round" opacity="0.6"/>
+            </svg>
+            para deixar sua marca no universo
           </p>
         </div>
       </div>

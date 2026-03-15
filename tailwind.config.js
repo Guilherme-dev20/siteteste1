@@ -9,18 +9,18 @@ module.exports = {
     extend: {
       colors: {
         space: {
-          black: '#050510',
-          deep: '#0A0A1A',
-          dark: '#0F0A1E',
-          navy: '#0D0D2B',
+          black: '#0a0a0f',
+          deep: '#0d0d1a',
+          dark: '#0d0d1a',
+          navy: '#0d0d1a',
         },
         nebula: {
-          purple: '#8B5CF6',
-          violet: '#7C3AED',
+          purple: '#a855f7',
+          violet: '#6b21a8',
           indigo: '#6366F1',
-          pink: '#A855F7',
-          light: '#C4B5FD',
-          glow: '#DDD6FE',
+          pink: '#a855f7',
+          light: '#c4b5fd',
+          glow: '#ddd6fe',
         },
         comet: {
           white: '#F8FAFC',
@@ -32,14 +32,14 @@ module.exports = {
         display: ['Montserrat', 'sans-serif'],
       },
       backgroundImage: {
-        'nebula-gradient': 'radial-gradient(ellipse at center, #1e1040 0%, #050510 70%)',
-        'purple-glow': 'radial-gradient(ellipse, #8B5CF620 0%, transparent 70%)',
-        'card-gradient': 'linear-gradient(135deg, #1a1040 0%, #0d0d2b 100%)',
+        'nebula-gradient': 'radial-gradient(ellipse at center, #1a0a2e 0%, #0a0a0f 70%)',
+        'purple-glow': 'radial-gradient(ellipse, rgba(168,85,247,0.12) 0%, transparent 70%)',
+        'card-gradient': 'linear-gradient(135deg, #1a0a2e 0%, #0d0d1a 100%)',
       },
       boxShadow: {
-        'purple-glow': '0 0 20px rgba(139, 92, 246, 0.4)',
-        'purple-glow-lg': '0 0 40px rgba(139, 92, 246, 0.5)',
-        'purple-glow-xl': '0 0 60px rgba(139, 92, 246, 0.6)',
+        'purple-glow': '0 0 20px rgba(168, 85, 247, 0.4)',
+        'purple-glow-lg': '0 0 40px rgba(168, 85, 247, 0.5)',
+        'purple-glow-xl': '0 0 60px rgba(168, 85, 247, 0.6)',
         'card': '0 4px 24px rgba(0,0,0,0.5)',
       },
       animation: {

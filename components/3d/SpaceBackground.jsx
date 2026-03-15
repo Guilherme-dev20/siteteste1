@@ -7,7 +7,7 @@ function randomBetween(a, b) {
   return a + Math.random() * (b - a)
 }
 
-export default function SpaceBackground() {
+export default function SpaceBackground({ bgColor = '#050510' }) {
   const canvasRef = useRef(null)
 
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function SpaceBackground() {
 
     function animate(timestamp) {
       // Background
-      ctx.fillStyle = '#050510'
+      ctx.fillStyle = bgColor
       ctx.fillRect(0, 0, width, height)
 
       // Nebula
@@ -172,7 +172,7 @@ export default function SpaceBackground() {
       cancelAnimationFrame(animationId)
       window.removeEventListener('resize', resize)
     }
-  }, [])
+  }, [bgColor])
 
   return (
     <canvas
