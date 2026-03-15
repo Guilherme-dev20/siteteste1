@@ -4,6 +4,18 @@ const items = [
   {
     icon: (
       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+    ),
+    color: '#f59e0b',
+    bg: 'rgba(245,158,11,0.1)',
+    title: 'Entrega em 5 a 7 dias úteis',
+    sub: 'Para Fortaleza e toda a região CE',
+  },
+  {
+    icon: (
+      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
       </svg>
     ),
@@ -22,19 +34,7 @@ const items = [
     color: '#34d399',
     bg: 'rgba(52,211,153,0.1)',
     title: 'Refazemos se precisar',
-    sub: 'Não ficou bom? A gente resolve sem custo',
-  },
-  {
-    icon: (
-      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/>
-      </svg>
-    ),
-    color: '#60a5fa',
-    bg: 'rgba(96,165,250,0.1)',
-    title: '+500 pedidos entregues',
-    sub: 'Clientes em Fortaleza e toda a região CE',
+    sub: 'Não ficou bom? Resolvemos sem custo',
   },
   {
     icon: (
@@ -44,7 +44,7 @@ const items = [
     ),
     color: '#25D366',
     bg: 'rgba(37,211,102,0.1)',
-    title: 'Suporte humano no WhatsApp',
+    title: 'Suporte real no WhatsApp',
     sub: 'Respondemos na hora, pessoa real',
   },
 ]

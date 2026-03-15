@@ -83,11 +83,30 @@ export default function Hero() {
           {/* ── Texto — ESQUERDA ── */}
           <div className="order-1">
 
-            {/* Social proof badge — acima do título */}
+            {/* Urgency pill */}
             <motion.div
               initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="inline-flex items-center gap-2 mb-3"
+              style={{
+                background: 'rgba(239,68,68,0.1)',
+                border: '1px solid rgba(239,68,68,0.25)',
+                borderRadius: '99px',
+                padding: '4px 12px',
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+              <span style={{ color: '#fca5a5', fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em' }}>
+                Pedidos abertos — personalize agora e receba em 5 a 7 dias
+              </span>
+            </motion.div>
+
+            {/* Social proof badge — acima do título */}
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.18 }}
               className="inline-flex items-center gap-2.5 mb-6"
               style={{
                 background: 'rgba(250,204,21,0.08)',
@@ -138,17 +157,18 @@ export default function Hero() {
               <span className="text-white">em 3D antes de pedir</span>
             </motion.h1>
 
-            {/* Sub-headline — clareza máxima, sem jargão */}
+            {/* Sub-headline — clareza máxima, sem jargão, com prazo de entrega */}
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               style={{ color: '#94a3b8', fontSize: '17px', lineHeight: 1.65, marginBottom: '32px', maxWidth: '480px' }}
             >
-              Escolha o produto, coloque sua arte ou texto, gire em 360° para ver como vai ficar —
+              Escolha o produto, coloque sua arte ou texto, gire em 360° para ver como vai ficar
               e envie o pedido{' '}
               <span style={{ color: '#e2d9f3', fontWeight: 600 }}>direto pelo WhatsApp</span>.
-              Sem conta, sem formulário.
+              {' '}Sem conta, sem formulário.{' '}
+              <span style={{ color: '#fbbf24', fontWeight: 600 }}>Entrega em 5 a 7 dias úteis.</span>
             </motion.p>
 
             {/* CTAs — hierarquia clara: 1 dominante + 1 secundário */}

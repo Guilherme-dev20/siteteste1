@@ -1,11 +1,11 @@
 const items = [
-  { text: 'MAIS DE 500 PEDIDOS ENTREGUES', accent: true },
-  { text: 'SEM CADASTRO NECESSÁRIO' },
-  { text: 'ESTAMPA HD — NÃO DESBOTA' },
-  { text: '4.9★ DE AVALIAÇÃO MÉDIA', accent: true },
-  { text: 'PEDIDO VIA WHATSAPP EM 5 MIN' },
-  { text: 'MOCKUP 3D GRÁTIS' },
-  { text: 'SATISFAÇÃO GARANTIDA', accent: true },
+  { text: '+500 PEDIDOS ENTREGUES EM FORTALEZA', accent: true },
+  { text: 'SEM CADASTRO — PEÇA EM 5 MINUTOS' },
+  { text: 'IMPRESSÃO QUE NÃO DESBOTA NEM DESCASCA' },
+  { text: '4.9★ — AVALIAÇÃO REAL DOS CLIENTES', accent: true },
+  { text: 'ENTREGA EM 5 A 7 DIAS ÚTEIS' },
+  { text: 'VISUALIZE EM 3D ANTES DE PEDIR' },
+  { text: 'REFAZEMOS SE NÃO FICAR BOM', accent: true },
   { text: 'CAMISAS · CANECAS · COPOS · CERÂMICA' },
 ]
 

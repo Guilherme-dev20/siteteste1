@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const navLinks = [
   { label: 'Início', href: '/' },
-  { label: 'Designer 3D', href: '/personalizar' },
+  { label: 'Personalizar', href: '/personalizar' },
   { label: 'Produtos', href: '/produtos' },
 ]
 
@@ -84,7 +84,7 @@ export default function Navbar() {
             rel="noopener noreferrer"
             className="btn-primary text-sm px-5 py-2"
           >
-            Contato
+            Falar no WhatsApp
           </a>
         </nav>
 
@@ -153,7 +153,7 @@ export default function Navbar() {
                   onClick={() => setMenuOpen(false)}
                   className="btn-primary w-full text-center text-sm block"
                 >
-                  Contato
+                  Falar no WhatsApp
                 </a>
               </motion.div>
             </nav>

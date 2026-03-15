@@ -56,8 +56,8 @@ const differentials = [
   },
   {
     Icon: IconZap,
-    title: 'Zero burocracia',
-    description: 'Não precisa de conta, login ou cadastro. Entra, personaliza, pede. Em menos de 5 minutos o pedido está em produção.',
+    title: 'Sem conta, sem formulário',
+    description: 'Não precisa criar conta nem preencher nada. Entra, escolhe, personaliza e manda o pedido pelo WhatsApp. Do zero ao pedido em menos de 5 minutos.',
   },
 ]
 
