@@ -41,23 +41,23 @@ function IconZap() {
 const differentials = [
   {
     Icon: IconPalette,
-    title: 'Designer 3D',
-    description: 'Visualize sua camisa em tempo real com nosso editor 3D exclusivo — sem surpresas na hora de receber.',
+    title: 'O que você vê é o que chega',
+    description: 'Nosso editor 3D mostra exatamente como vai ficar — cor, arte e posição. Sem surpresas, sem decepções na hora de receber.',
   },
   {
     Icon: IconAward,
-    title: 'Qualidade Premium',
-    description: 'Estampas HD de alta durabilidade, cores vivas que não desbotam, em tecido de qualidade.',
+    title: 'Estampa que dura lavagem',
+    description: 'Impressão HD de alta fixação. As cores não desbotam nem descascam — garantimos qualidade em cada peça.',
   },
   {
     Icon: IconMessageCircle,
-    title: 'WhatsApp Direto',
-    description: 'Sem formulários complicados. Você cria o design e manda direto pro nosso WhatsApp em segundos.',
+    title: 'Pedido em 1 mensagem',
+    description: 'Criou o design? Clica em enviar. O pedido chega pra gente pelo WhatsApp com todos os detalhes — sem formulário, sem e-mail.',
   },
   {
     Icon: IconZap,
-    title: 'Rápido e Simples',
-    description: 'Sem cadastro, sem conta, sem burocracia. Em poucos minutos seu pedido está pronto para produção.',
+    title: 'Zero burocracia',
+    description: 'Não precisa de conta, login ou cadastro. Entra, personaliza, pede. Em menos de 5 minutos o pedido está em produção.',
   },
 ]
 
@@ -86,7 +86,8 @@ export default function WhyUs() {
             transition={{ delay: 0.1 }}
             className="section-title"
           >
-            Feito para <span className="text-purple-400">Você</span>
+            Por que clientes{' '}
+            <span className="text-purple-400">voltam sempre</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
@@ -95,7 +96,7 @@ export default function WhyUs() {
             transition={{ delay: 0.2 }}
             className="section-subtitle"
           >
-            Diferenciais que nos tornam a escolha certa para sua personalização
+            Qualidade, facilidade e atendimento que fazem a diferença na hora de personalizar.
           </motion.p>
         </div>
 

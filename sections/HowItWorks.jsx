@@ -30,21 +30,24 @@ function IconMessageCircle() {
 const steps = [
   {
     number: '01',
+    time: '~1 min',
     Icon: Icon3D,
-    title: 'Acesse o Designer 3D',
-    description: 'Abra nossa ferramenta de personalização e veja sua camisa em 3D, rotacionando em tempo real.',
+    title: 'Escolha o produto',
+    description: 'Selecione o item que quer personalizar — camisa, caneca, copo ou outros. Veja o modelo girar em 3D antes de qualquer coisa.',
   },
   {
     number: '02',
+    time: '~3 min',
     Icon: IconPen,
-    title: 'Personalize',
-    description: 'Escolha a cor, faça upload da sua arte, adicione textos e posicione onde quiser.',
+    title: 'Coloque sua arte',
+    description: 'Escolha a cor, faça upload da sua imagem ou adicione um texto. Arraste, redimensione e posicione onde quiser — o que você vê é o que você recebe.',
   },
   {
     number: '03',
+    time: '~30 seg',
     Icon: IconMessageCircle,
-    title: 'Envie pelo WhatsApp',
-    description: 'Clique em "Enviar Pedido" e uma mensagem automática será enviada para nós com todos os detalhes.',
+    title: 'Peça pelo WhatsApp',
+    description: 'Clique em "Enviar Pedido". O mockup do seu produto é enviado automaticamente junto com o pedido — sem formulários, sem e-mail.',
   },
 ]
 
@@ -75,7 +78,8 @@ export default function HowItWorks() {
             transition={{ delay: 0.1 }}
             className="section-title"
           >
-            Do Clique ao <span className="text-purple-400">Produto</span>
+            Do design ao pedido{' '}
+            <span className="text-purple-400">em menos de 5 min</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
@@ -84,7 +88,7 @@ export default function HowItWorks() {
             transition={{ delay: 0.2 }}
             className="section-subtitle"
           >
-            Simples, rápido e sem complicação
+            Sem cadastro, sem formulário. Você personaliza, vê em 3D e manda o pedido pelo WhatsApp.
           </motion.p>
         </div>
 
@@ -116,19 +120,20 @@ export default function HowItWorks() {
               >
                 {/* Step number + icon row */}
                 <div className="flex items-center justify-between mb-5">
-                  {/* Icon in purple container */}
                   <div
                     className="purple-icon-container w-12 h-12"
-                    style={{ borderRadius: '12px', background: '#1a0a2e' }}
+                    style={{ borderRadius: '12px', background: '#1e112f' }}
                   >
                     <step.Icon />
                   </div>
-                  {/* Step number */}
-                  <span
-                    className="font-mono font-black text-4xl text-purple-400/30 group-hover:text-purple-400/60 transition-colors duration-300"
-                  >
-                    {step.number}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="font-mono font-black text-4xl text-purple-400/30 group-hover:text-purple-400/60 transition-colors duration-300 leading-none">
+                      {step.number}
+                    </span>
+                    <span style={{ color: '#4b5563', fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                      {step.time}
+                    </span>
+                  </div>
                 </div>
 
                 <h3 className="text-white font-bold text-lg mb-2 font-display uppercase tracking-wide">

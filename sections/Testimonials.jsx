@@ -192,10 +192,10 @@ export default function Testimonials() {
               className="text-transparent bg-clip-text"
               style={{ backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #6366f1 60%, #3b82f6 100%)' }}
             >
-              O que nossos clientes
+              Quem já pediu
             </span>
             <br />
-            <span className="text-white">estão dizendo</span>
+            <span className="text-white">aprova e volta</span>
           </motion.h2>
 
           <motion.p
@@ -205,7 +205,7 @@ export default function Testimonials() {
             transition={{ delay: 0.2 }}
             className="text-gray-400 text-base max-w-md mx-auto leading-relaxed"
           >
-            Mais de 200 clientes satisfeitos em toda a região.
+            Avaliações reais de clientes de Fortaleza e região — sem edição, sem filtro.
           </motion.p>
 
           {/* Stats strip */}

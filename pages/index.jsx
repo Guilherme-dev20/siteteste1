@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FloatingButtons from '../components/FloatingButtons'
 import Ticker from '../components/Ticker'
+import TrustBanner from '../components/TrustBanner'
 import Hero from '../sections/Hero'
 import Campaign from '../sections/Campaign'
 import FeaturedProducts from '../sections/FeaturedProducts'
@@ -36,6 +37,7 @@ export default function Home() {
       <main>
         <Hero />
         <Ticker />
+        <TrustBanner />
         <Campaign />
         <FeaturedProducts />
         <Themes />
