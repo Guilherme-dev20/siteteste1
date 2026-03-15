@@ -10,6 +10,7 @@ export default function Campaign() {
   const [activeId, setActiveId] = useState(null)
 
   useEffect(() => {
+    if (!supabase) return
     supabase
       .from('campanhas')
       .select('*')
@@ -22,7 +23,6 @@ export default function Campaign() {
         }
       })
 
-    // Carrega produtos do Supabase para os cards relacionados
     supabase
       .from('produtos')
       .select('id, nome, imagem_url, preco')

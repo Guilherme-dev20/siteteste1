@@ -34,6 +34,7 @@ export default function Produtos() {
   const [search, setSearch]           = useState('')
 
   useEffect(() => {
+    if (!supabase) { setLoading(false); return }
     supabase
       .from('produtos')
       .select('*')

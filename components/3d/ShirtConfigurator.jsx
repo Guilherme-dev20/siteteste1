@@ -219,6 +219,7 @@ export default function ShirtConfigurator() {
 
   // Carrega cores do Supabase
   useEffect(() => {
+    if (!supabase) return
     supabase
       .from('cores')
       .select('id, nome, hex')

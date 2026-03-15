@@ -21,6 +21,7 @@ export default function FeaturedProducts() {
   const [featured, setFeatured] = useState([])
 
   useEffect(() => {
+    if (!supabase) return
     supabase
       .from('produtos')
       .select('*')
