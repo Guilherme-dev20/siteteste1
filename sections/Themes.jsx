@@ -76,15 +76,38 @@ export default function Themes() {
           </motion.div>
         </div>
 
-        {/* ── Bento Grid ──
+        {/* ── Mobile: chips com scroll horizontal ── */}
+        <div className="md:hidden overflow-x-auto scrollbar-none -mx-4 px-4 pb-4">
+          <div className="flex gap-3" style={{ width: 'max-content' }}>
+            {list.map((theme) => (
+              <Link key={theme.id} href="/temas" aria-label={`Ver tema ${theme.name}`}>
+                <div
+                  className="flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                  style={{
+                    background: `${theme.color}18`,
+                    border: `1px solid ${theme.color}45`,
+                    borderRadius: '99px',
+                    padding: '10px 16px',
+                  }}
+                >
+                  <span role="img" aria-hidden="true">{theme.icon}</span>
+                  <span className="text-white text-sm font-semibold">{theme.name}</span>
+                  <span className="text-gray-500 text-xs">· {theme.count}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Desktop: Bento Grid ──
               Row 1: [  featured — col-span-2  ] [ card 1 ]
               Row 2: [ card 2 ] [ card 3 ] [ card 4 ]
               Row 3: [ card 5 ]
         */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="hidden md:grid md:grid-cols-3 gap-3">
 
           {/* Featured — spans 2 cols */}
-          <div className="sm:col-span-2">
+          <div className="md:col-span-2">
             <Link href="/temas">
               <ThemeCard theme={list[0]} index={0} total={list.length} featured />
             </Link>

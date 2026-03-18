@@ -23,7 +23,7 @@ const BG_THEMES = [
 
 // ─── Modelos disponíveis ──────────────────────────────────────────────────────
 const MODELS = [
-  { id: 'camisateste2',  label: 'Camisa Teste',  path: '/models/camisateste2.glb'  },
+  { id: 'camisateste2',  label: 'Camisa',  path: '/models/camisateste2.glb'  },
   { id: 'collar',        label: 'Camisa Gola',   path: '/models/collar.glb'         },
 ]
 MODELS.forEach((m) => useGLTF.preload(m.path))
@@ -71,8 +71,8 @@ function GLBShirt({ path, canvasEl, canvasVersion }) {
     const mat = new THREE.MeshStandardMaterial({
       color:     new THREE.Color('#FFFFFF'),
       map:       texRef.current,
-      roughness: 0.72,
-      metalness: 0.04,
+      roughness: 0.75,
+      metalness: 0.03,
     })
     meshesRef.current.forEach((mesh) => {
       if (mesh.material && mesh.material !== mat) mesh.material.dispose()
@@ -488,12 +488,10 @@ export default function ShirtConfigurator() {
           gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true }}
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         >
-          <ambientLight intensity={0.38} />
-          <directionalLight position={[4,  6,  5]}  intensity={0.75} castShadow />
-          <directionalLight position={[-4, 6, -5]}  intensity={0.75} />
-          <directionalLight position={[-4, -2, -4]} intensity={0.10} color="#a855f7" />
-          <pointLight       position={[0,  3,  3]}  intensity={0.14} color="#8B5CF6" />
-          <pointLight       position={[0,  3, -3]}  intensity={0.14} color="#8B5CF6" />
+          <ambientLight intensity={0.55} />
+          <directionalLight position={[4,  6,  5]}  intensity={1.4} castShadow />
+          <directionalLight position={[-4, 6, -5]}  intensity={0.4} color="#a855f7" />
+          <pointLight       position={[0,  3,  3]}  intensity={0.7} color="#8B5CF6" />
 
           <Suspense fallback={<GeometricFallback color={shirtColor} />}>
             <GLBShirt

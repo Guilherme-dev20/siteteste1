@@ -116,14 +116,52 @@ export default function FeaturedProducts() {
           </motion.div>
         </div>
 
-        {/* ── Mobile: scroll horizontal · Desktop: grid 4 colunas ── */}
-        <div className="lg:hidden flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-none">
+        {/* ── Mobile < 768px: lista vertical ── */}
+        <div className="md:hidden flex flex-col gap-3">
+          {featured.map((product) => (
+            <Link key={product.id} href="/personalizar" aria-label={`Personalizar ${product.name}`}>
+              <div
+                className="flex items-center gap-4 p-4 rounded-2xl active:scale-[0.98] transition-transform duration-150"
+                style={{ background: 'rgba(15,15,35,0.9)', border: '1px solid rgba(139,92,246,0.15)' }}
+              >
+                {product.placeholder ? (
+                  <img
+                    src={product.placeholder}
+                    alt={product.name}
+                    className="w-20 h-20 rounded-xl object-cover flex-shrink-0"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div
+                    className="w-20 h-20 rounded-xl flex-shrink-0 flex items-center justify-center"
+                    style={{ background: 'rgba(139,92,246,0.15)' }}
+                  >
+                    <svg width="28" height="28" fill="none" stroke="#a855f7" strokeWidth="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+                    </svg>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-bold text-base leading-tight truncate">{product.name}</p>
+                  <p className="text-gray-400 text-sm truncate mt-0.5">{product.category}</p>
+                  <p className="text-purple-400 font-bold text-sm mt-1">{product.price}</p>
+                </div>
+                <span className="text-purple-400 text-lg font-bold flex-shrink-0" aria-hidden="true">→</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* ── Tablet 768-1024px: scroll horizontal ── */}
+        <div className="hidden md:flex lg:hidden gap-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-none">
           {featured.map((product, i) => (
             <div key={product.id} className="flex-shrink-0 w-[240px]">
               <ProductCard product={product} index={i} />
             </div>
           ))}
         </div>
+
+        {/* ── Desktop > 1024px: grid 4 colunas ── */}
         <div className="hidden lg:grid grid-cols-4 gap-5">
           {featured.map((product, i) => (
             <ProductCard key={product.id} product={product} index={i} />

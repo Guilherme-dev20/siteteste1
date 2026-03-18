@@ -237,33 +237,91 @@ export default function Testimonials() {
           </motion.div>
         </div>
 
-        {/* ── Marquee Row 1 — esquerda para direita ── */}
-        <div className="relative mb-4" style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}>
-          <div
-            className="flex gap-4"
-            style={{
-              width: 'max-content',
-              animation: 'marquee-left 35s linear infinite',
-            }}
+        {/* ── Mobile: 3 cards estáticos ── */}
+        <div className="md:hidden px-5 flex flex-col gap-4 mb-8">
+          {TESTIMONIALS.slice(0, 3).map((item, i) => (
+            <div
+              key={i}
+              className="rounded-2xl p-5 flex flex-col gap-3"
+              style={{
+                background: 'linear-gradient(135deg, #0f0f24 0%, #0a0a18 100%)',
+                border: '1px solid rgba(139,92,246,0.15)',
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <Stars />
+                <span
+                  className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
+                  style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa' }}
+                >
+                  {item.product}
+                </span>
+              </div>
+              <p
+                className="text-gray-300 text-sm leading-relaxed"
+                style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+              >
+                &ldquo;{item.text}&rdquo;
+              </p>
+              <div className="flex items-center gap-3 pt-2 border-t border-white/5">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-black"
+                  style={{ background: item.color }}
+                >
+                  {item.avatar}
+                </div>
+                <div>
+                  <p className="text-white text-xs font-bold leading-none">{item.name}</p>
+                  <p className="text-gray-500 text-[10px] mt-0.5">{item.city}</p>
+                </div>
+                <div className="ml-auto flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5 text-green-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-[9px] text-green-400 font-bold">Verificado</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          <a
+            href="https://wa.me/5585987208308?text=Olá! Gostaria de ver mais avaliações dos produtos."
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Ver mais avaliações no WhatsApp"
+            className="flex items-center justify-center gap-2 font-bold text-sm text-white rounded-2xl py-4"
+            style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}
           >
-            {[...row1, ...row1].map((item, i) => (
-              <TestimonialCard key={i} item={item} />
-            ))}
-          </div>
+            Ver mais avaliações
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
         </div>
 
-        {/* ── Marquee Row 2 — direita para esquerda ── */}
-        <div className="relative" style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}>
-          <div
-            className="flex gap-4"
-            style={{
-              width: 'max-content',
-              animation: 'marquee-right 40s linear infinite',
-            }}
-          >
-            {[...row2, ...row2].map((item, i) => (
-              <TestimonialCard key={i} item={item} />
-            ))}
+        {/* ── Desktop: Marquee Rows ── */}
+        <div className="hidden md:block">
+          {/* Marquee Row 1 — esquerda para direita */}
+          <div className="relative mb-4" style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}>
+            <div
+              className="flex gap-4"
+              style={{ width: 'max-content', animation: 'marquee-left 35s linear infinite' }}
+            >
+              {[...row1, ...row1].map((item, i) => (
+                <TestimonialCard key={i} item={item} />
+              ))}
+            </div>
+          </div>
+
+          {/* Marquee Row 2 — direita para esquerda */}
+          <div className="relative" style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}>
+            <div
+              className="flex gap-4"
+              style={{ width: 'max-content', animation: 'marquee-right 40s linear infinite' }}
+            >
+              {[...row2, ...row2].map((item, i) => (
+                <TestimonialCard key={i} item={item} />
+              ))}
+            </div>
           </div>
         </div>
       </div>

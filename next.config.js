@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   transpilePackages: ['three'],
   images: {
     domains: ['via.placeholder.com', 'picsum.photos', 'ydhmwqdeofhdxkdfytou.supabase.co'],

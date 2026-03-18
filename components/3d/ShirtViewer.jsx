@@ -195,7 +195,7 @@ function GLBHeroShirt() {
         color:     new THREE.Color('#ffffff'),
         map:       tex,
         roughness: 0.75,
-        metalness: 0.03,
+        metalness: 0.0,
       })
       clone.traverse((child) => {
         if (!child.isMesh) return
@@ -239,7 +239,7 @@ function GLBHeroShirt() {
 
   useFrame((state) => {
     if (!groupRef.current) return
-    groupRef.current.rotation.y += 0.005
+    groupRef.current.rotation.y += 0.012
     groupRef.current.position.y  = Math.sin(state.clock.elapsedTime * 0.8) * 0.07
   })
 
@@ -257,7 +257,7 @@ function GeometricFallback() {
 
   useFrame((state) => {
     if (!groupRef.current) return
-    groupRef.current.rotation.y += 0.005
+    groupRef.current.rotation.y += 0.012
     groupRef.current.position.y  = Math.sin(state.clock.elapsedTime * 0.8) * 0.07
   })
 

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Block Next.js internals
+Disallow: /_next/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://cometapersonalizacao.com.br/sitemap.xml
+
+# Crawl-delay hint for polite crawlers
+Crawl-delay: 1

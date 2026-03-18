@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { motion, AnimatePresence } from 'framer-motion'
+import dynamic from 'next/dynamic'
+
+const Lottie = dynamic(() => import('lottie-react'), { ssr: false })
 
 const navLinks = [
   { label: 'Início', href: '/' },
@@ -9,10 +12,10 @@ const navLinks = [
   { label: 'Produtos', href: '/produtos' },
 ]
 
-// Comet SVG icon for logo
-function CometIcon() {
+// Fallback SVG enquanto Lottie carrega
+function CometFallback() {
   return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="36" height="36" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="20" cy="8" r="5" fill="#a855f7" />
       <line x1="17" y1="11" x2="2" y2="26" stroke="url(#cometGrad)" strokeWidth="2.5" strokeLinecap="round"/>
       <line x1="15" y1="13" x2="3" y2="24" stroke="url(#cometGrad2)" strokeWidth="1.2" strokeLinecap="round" opacity="0.5"/>
@@ -28,6 +31,20 @@ function CometIcon() {
       </defs>
     </svg>
   )
+}
+
+function CometLottie() {
+  const [animData, setAnimData] = useState(null)
+
+  useEffect(() => {
+    fetch('/lottie/comet.json')
+      .then(r => r.json())
+      .then(setAnimData)
+      .catch(() => {})
+  }, [])
+
+  if (!animData) return <CometFallback />
+  return <Lottie animationData={animData} loop autoplay style={{ width: 40, height: 40 }} />
 }
 
 export default function Navbar() {
@@ -58,7 +75,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <CometIcon />
+          <CometLottie />
           <div>
             <span className="font-display font-bold text-xl text-white">Cometa</span>
             <span className="font-display font-bold text-xl text-purple-400"> Personalização</span>
