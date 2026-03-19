@@ -288,7 +288,7 @@ export default function ShirtViewer() {
   return (
     <Canvas
       camera={{ position: [0, 0, 3.5], fov: 44 }}
-      gl={{ antialias: true, alpha: true }}
+      gl={{ antialias: true, alpha: true, powerPreference: 'default', failIfMajorPerformanceCaveat: false, preserveDrawingBuffer: false }}
       style={{ background: 'transparent', width: '100%', height: '100%' }}
     >
       <ambientLight intensity={0.3} />

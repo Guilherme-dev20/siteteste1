@@ -65,4 +65,15 @@ export const themes = [
     count: 42,
     cover: 'https://picsum.photos/seed/datas/600/400',
   },
+  {
+    id: 7,
+    name: 'Dia das Mães',
+    slug: 'dia-das-maes',
+    icon: '💐',
+    color: '#F472B6',
+    gradient: 'from-pink-400 to-rose-400',
+    description: 'Presentes únicos para celebrar o amor das mães',
+    count: 12,
+    cover: 'https://picsum.photos/seed/mothers/600/400',
+  },
 ]

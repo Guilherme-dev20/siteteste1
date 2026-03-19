@@ -1,9 +1,39 @@
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import ThemeCard from '../components/ThemeCard'
-import { themes } from '../data/themes'
+import { themes as localThemes } from '../data/themes'
+import { supabase } from '../lib/supabase'
+
+function mapTema(t) {
+  return {
+    id:          t.id,
+    name:        t.nome,
+    slug:        t.slug,
+    icon:        t.icone || '🎨',
+    color:       t.cor || '#8B5CF6',
+    gradient:    'from-purple-600 to-pink-500',
+    description: t.descricao || '',
+    count:       t.count || 0,
+    cover:       t.cover_url || `https://picsum.photos/seed/${t.slug}/600/400`,
+  }
+}
 
 export default function Themes() {
+  const [themes, setThemes] = useState(localThemes)
+
+  useEffect(() => {
+    if (!supabase) return
+    supabase
+      .from('temas')
+      .select('*')
+      .eq('ativo', true)
+      .order('ordem')
+      .then(({ data, error }) => {
+        if (data?.length) setThemes(data.map(mapTema))
+      })
+  }, [])
+
   const list = themes.slice(0, 6)
 
   return (
@@ -28,7 +58,7 @@ export default function Themes() {
             >
               <div className="w-6 h-[2px] bg-nebula-purple rounded-full" />
               <span className="text-nebula-purple text-[10px] font-bold uppercase tracking-[0.35em]">
-                Catálogo / 06
+                Catálogo / {String(themes.length).padStart(2, '0')}
               </span>
             </motion.div>
 
@@ -76,65 +106,73 @@ export default function Themes() {
           </motion.div>
         </div>
 
-        {/* ── Mobile: chips com scroll horizontal ── */}
+        {/* ── Mobile: cards com imagem scroll horizontal ── */}
         <div className="md:hidden overflow-x-auto scrollbar-none -mx-4 px-4 pb-4">
           <div className="flex gap-3" style={{ width: 'max-content' }}>
-            {list.map((theme) => (
-              <Link key={theme.id} href="/temas" aria-label={`Ver tema ${theme.name}`}>
+            {themes.map((theme) => (
+              <Link key={theme.id} href={`/temas?tema=${theme.slug}`} aria-label={`Ver tema ${theme.name}`}>
                 <div
-                  className="flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                  className="relative overflow-hidden cursor-pointer flex-shrink-0"
                   style={{
-                    background: `${theme.color}18`,
-                    border: `1px solid ${theme.color}45`,
-                    borderRadius: '99px',
-                    padding: '10px 16px',
+                    width: '140px',
+                    height: '180px',
+                    borderRadius: '16px',
+                    border: `1px solid ${theme.color}40`,
                   }}
                 >
-                  <span role="img" aria-hidden="true">{theme.icon}</span>
-                  <span className="text-white text-sm font-semibold">{theme.name}</span>
-                  <span className="text-gray-500 text-xs">· {theme.count}</span>
+                  <img
+                    src={theme.cover}
+                    alt={theme.name}
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)' }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="text-xl mb-1">{theme.icon}</div>
+                    <p className="text-white text-sm font-bold leading-tight">{theme.name}</p>
+                    {theme.count > 0 && (
+                      <p className="text-gray-300 text-xs mt-0.5">{theme.count} artes</p>
+                    )}
+                  </div>
+                  <div
+                    className="absolute top-0 left-0 right-0 h-0.5"
+                    style={{ background: theme.color }}
+                  />
                 </div>
               </Link>
             ))}
           </div>
         </div>
 
-        {/* ── Desktop: Bento Grid ──
-              Row 1: [  featured — col-span-2  ] [ card 1 ]
-              Row 2: [ card 2 ] [ card 3 ] [ card 4 ]
-              Row 3: [ card 5 ]
-        */}
+        {/* ── Desktop: Bento Grid ── */}
         <div className="hidden md:grid md:grid-cols-3 gap-3">
-
-          {/* Featured — spans 2 cols */}
           <div className="md:col-span-2">
-            <Link href="/temas">
+            <Link href={`/temas?tema=${list[0]?.slug}`}>
               <ThemeCard theme={list[0]} index={0} total={list.length} featured />
             </Link>
           </div>
-
-          {/* Card 1 */}
           <div>
-            <Link href="/temas">
+            <Link href={`/temas?tema=${list[1]?.slug}`}>
               <ThemeCard theme={list[1]} index={1} total={list.length} />
             </Link>
           </div>
-
-          {/* Row 2: 3 equal cards */}
           {list.slice(2, 5).map((theme, i) => (
             <div key={theme.id}>
-              <Link href="/temas">
+              <Link href={`/temas?tema=${theme.slug}`}>
                 <ThemeCard theme={theme} index={i + 2} total={list.length} />
               </Link>
             </div>
           ))}
-
-          {/* Last card alone */}
-          <div>
-            <Link href="/temas">
-              <ThemeCard theme={list[5]} index={5} total={list.length} />
-            </Link>
-          </div>
+          {list[5] && (
+            <div>
+              <Link href={`/temas?tema=${list[5].slug}`}>
+                <ThemeCard theme={list[5]} index={5} total={list.length} />
+              </Link>
+            </div>
+          )}
         </div>
 
       </div>

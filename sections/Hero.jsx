@@ -1,6 +1,23 @@
+import { Component } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
+
+class WebGLErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { failed: false } }
+  static getDerivedStateFromError() { return { failed: true } }
+  render() {
+    if (this.state.failed) return (
+      <div className="w-full h-full flex items-center justify-center opacity-30">
+        <svg width="80" height="80" viewBox="0 0 100 120" fill="none">
+          <rect x="10" y="5" width="80" height="110" rx="4" fill="#6d28d9" opacity="0.4"/>
+          <rect x="22" y="18" width="56" height="70" rx="2" fill="#4c1d95" opacity="0.6"/>
+        </svg>
+      </div>
+    )
+    return this.props.children
+  }
+}
 
 const SpaceBackground = dynamic(() => import('../components/3d/SpaceBackground'), { ssr: false })
 
@@ -207,7 +224,9 @@ export default function Hero() {
               <div className="w-72 h-72 bg-purple-600/28 rounded-full blur-3xl animate-pulse" />
             </div>
 
-            <ShirtViewer />
+            <WebGLErrorBoundary>
+              <ShirtViewer />
+            </WebGLErrorBoundary>
 
             {/* Floating badge — TOP LEFT: Social proof */}
             <motion.div

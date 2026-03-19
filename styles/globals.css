@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* iOS Safari 100vh fix */
+.min-h-screen { min-height: 100vh; min-height: -webkit-fill-available; }
+html { height: -webkit-fill-available; }
+
 :root {
   --purple-primary: #6b21a8;
   --purple-light: #a855f7;
