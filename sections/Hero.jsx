@@ -92,18 +92,17 @@ export default function Hero() {
               className="font-display font-black leading-tight mb-5 uppercase tracking-tight"
               style={{ fontSize: 'clamp(2.4rem, 6vw, 4.25rem)' }}
             >
-              <span className="text-white">Transforme sua</span>
+              <span className="text-white">Sua ideia,</span>
               <br />
+              <span className="text-white">em um </span>
               <span
                 className="text-transparent bg-clip-text"
                 style={{ backgroundImage: 'linear-gradient(90deg, #c084fc 0%, #a855f7 50%, #7c3aed 100%)', WebkitBackgroundClip: 'text' }}
               >
-                ideia
+                universo
               </span>
-              {' '}
-              <span className="text-white">em</span>
               <br />
-              <span className="text-white">camisa única</span>
+              <span className="text-white">de possibilidades</span>
             </motion.h1>
 
             {/* Sub-headline — clareza máxima, sem jargão, com prazo de entrega */}
@@ -113,10 +112,10 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.4 }}
               style={{ color: '#94a3b8', fontSize: '17px', lineHeight: 1.65, marginBottom: '32px', maxWidth: '480px' }}
             >
-              Monte seu design no editor 3D, baixe a imagem e peça{' '}
-              <span style={{ color: '#e2d9f3', fontWeight: 600 }}>direto no WhatsApp</span>.
-              {' '}Qualidade profissional,{' '}
-              <span style={{ color: '#fbbf24', fontWeight: 600 }}>entrega rápida.</span>
+              Monte seu design de forma única, baixe o modelo e logo após é só nos encaminhar.{' '}
+              <span style={{ color: '#e2d9f3', fontWeight: 600 }}>Qualidade profissional</span>,{' '}
+              tecidos variados e{' '}
+              <span style={{ color: '#c084fc', fontWeight: 600 }}>cores incríveis.</span>
             </motion.p>
 
             {/* CTAs — hierarquia clara: 1 dominante + 1 secundário */}

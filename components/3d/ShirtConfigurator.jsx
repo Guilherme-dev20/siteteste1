@@ -23,8 +23,9 @@ const BG_THEMES = [
 
 // ─── Modelos disponíveis ──────────────────────────────────────────────────────
 const MODELS = [
-  { id: 'camisateste2',  label: 'Camisa',  path: '/models/camisateste2.glb'  },
-  { id: 'collar',        label: 'Camisa Gola',   path: '/models/collar.glb'         },
+  { id: 'camisateste2', label: 'Camisa',      path: '/models/camisateste2.glb' },
+  { id: 'collar',       label: 'Camisa Gola', path: '/models/collar.glb'       },
+  { id: 'mangalonga',   label: 'Manga Longa', path: '/models/mangalonga.glb'   },
 ]
 MODELS.forEach((m) => useGLTF.preload(m.path))
 
@@ -45,6 +46,7 @@ function GLBShirt({ path, canvasEl, canvasVersion }) {
 
   const clone = useMemo(() => {
     const c   = scene.clone(true)
+    // Corrige modelos exportados de cabeça para baixo
     const box = new THREE.Box3().setFromObject(c)
     const sz  = box.getSize(new THREE.Vector3())
     const max = Math.max(sz.x, sz.y, sz.z)
