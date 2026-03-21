@@ -1,7 +1,8 @@
-import { Component } from 'react'
+import { Component, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
+import { supabase } from '../lib/supabase'
 
 class WebGLErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { failed: false } }
@@ -52,6 +53,24 @@ const trustItems = [
 ]
 
 export default function Hero() {
+  const [heroConfig, setHeroConfig] = useState({
+    modelo: 'camiseta', cor: '#ffffff', stamps: [], ativo: true,
+  })
+
+  useEffect(() => {
+    if (!supabase) return
+    supabase
+      .from('hero_config')
+      .select('*')
+      .eq('id', 1)
+      .single()
+      .then(({ data }) => {
+        if (data) setHeroConfig(data)
+      })
+  }, [])
+
+  if (heroConfig.ativo === false) return null
+
   return (
     <section
       className="relative min-h-screen flex items-center overflow-hidden"
@@ -92,7 +111,7 @@ export default function Hero() {
               className="font-display font-black leading-tight mb-5 uppercase tracking-tight"
               style={{ fontSize: 'clamp(2.4rem, 6vw, 4.25rem)' }}
             >
-              <span className="text-white">Sua ideia,</span>
+              <span className="text-white">Sua ideia</span>
               <br />
               <span className="text-white">em um </span>
               <span
@@ -224,7 +243,11 @@ export default function Hero() {
             </div>
 
             <WebGLErrorBoundary>
-              <ShirtViewer />
+              <ShirtViewer
+                modelo={heroConfig.modelo}
+                cor={heroConfig.cor}
+                stamps={heroConfig.stamps ?? []}
+              />
             </WebGLErrorBoundary>
 
             {/* Floating badge — TOP LEFT: Social proof */}

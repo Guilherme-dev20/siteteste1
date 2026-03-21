@@ -3,24 +3,26 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 
-const HERO_MODEL = '/models/camisateste2.glb'
-useGLTF.preload(HERO_MODEL)
+const MODELS = {
+  camiseta:   '/models/camisateste2.glb',
+  mangalonga: '/models/mangalonga.glb',
+}
 
-// ─── Gera a textura da camisa hero com design Cometa ─────────────────────────
-function buildHeroTexture() {
+// Preload padrão
+useGLTF.preload(MODELS.camiseta)
+
+// ─── Textura fallback canvas Cometa ───────────────────────────────────────────
+function buildHeroTexture(cor = '#0a0a0a') {
   const size = 1024
   const c    = document.createElement('canvas')
   c.width    = size
   c.height   = size
   const ctx  = c.getContext('2d')
-  // escala 2× para manter coordenadas originais (desenhado em 512 lógico)
   ctx.scale(2, 2)
 
-  // Fundo preto
-  ctx.fillStyle = '#0a0a0a'
+  ctx.fillStyle = cor
   ctx.fillRect(0, 0, 512, 512)
 
-  // Nebulosa roxa no centro
   const nebula = ctx.createRadialGradient(256, 210, 10, 256, 210, 200)
   nebula.addColorStop(0,   'rgba(139,92,246,0.45)')
   nebula.addColorStop(0.4, 'rgba(109,40,217,0.20)')
@@ -28,14 +30,12 @@ function buildHeroTexture() {
   ctx.fillStyle = nebula
   ctx.fillRect(0, 0, size, size)
 
-  // Nebulosa secundária (azul)
   const nebula2 = ctx.createRadialGradient(340, 150, 0, 340, 150, 130)
-  nebula2.addColorStop(0,   'rgba(59,130,246,0.25)')
-  nebula2.addColorStop(1,   'rgba(0,0,0,0)')
+  nebula2.addColorStop(0, 'rgba(59,130,246,0.25)')
+  nebula2.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = nebula2
   ctx.fillRect(0, 0, size, size)
 
-  // Estrelas
   const rng = { v: 0 }
   const rand = () => { rng.v = (rng.v * 9301 + 49297) % 233280; return rng.v / 233280 }
   for (let i = 0; i < 120; i++) {
@@ -49,7 +49,6 @@ function buildHeroTexture() {
     ctx.fill()
   }
 
-  // Cometa diagonal
   const cometGrad = ctx.createLinearGradient(60, 60, 230, 130)
   cometGrad.addColorStop(0,   'rgba(255,255,255,0)')
   cometGrad.addColorStop(0.6, 'rgba(200,180,255,0.5)')
@@ -65,7 +64,6 @@ function buildHeroTexture() {
   ctx.stroke()
   ctx.restore()
 
-  // Ícone de cometa (círculo brilhante)
   const starGlow = ctx.createRadialGradient(232, 131, 0, 232, 131, 18)
   starGlow.addColorStop(0,   'rgba(255,255,255,1)')
   starGlow.addColorStop(0.3, 'rgba(200,180,255,0.8)')
@@ -75,7 +73,6 @@ function buildHeroTexture() {
   ctx.arc(232, 131, 18, 0, Math.PI * 2)
   ctx.fill()
 
-  // Anel decorativo central
   ctx.save()
   ctx.strokeStyle = 'rgba(139,92,246,0.35)'
   ctx.lineWidth   = 1
@@ -94,18 +91,16 @@ function buildHeroTexture() {
   ctx.stroke()
   ctx.restore()
 
-  // Texto "COMETA" em grande
   ctx.save()
-  ctx.shadowColor = '#8B5CF6'
-  ctx.shadowBlur  = 24
-  ctx.fillStyle   = '#ffffff'
-  ctx.font        = 'bold 72px Arial Black, Arial, sans-serif'
-  ctx.textAlign   = 'center'
+  ctx.shadowColor  = '#8B5CF6'
+  ctx.shadowBlur   = 24
+  ctx.fillStyle    = '#ffffff'
+  ctx.font         = 'bold 72px Arial Black, Arial, sans-serif'
+  ctx.textAlign    = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillText('COMETA', 256, 220)
   ctx.restore()
 
-  // Linha decorativa sob o título
   const lineGrad = ctx.createLinearGradient(96, 248, 416, 248)
   lineGrad.addColorStop(0,   'rgba(139,92,246,0)')
   lineGrad.addColorStop(0.5, 'rgba(139,92,246,0.9)')
@@ -118,17 +113,14 @@ function buildHeroTexture() {
   ctx.lineTo(416, 252)
   ctx.stroke()
 
-  // Subtítulo
   ctx.save()
   ctx.fillStyle    = 'rgba(167,139,250,0.85)'
   ctx.font         = 'bold 20px Arial, sans-serif'
   ctx.textAlign    = 'center'
   ctx.textBaseline = 'middle'
-  ctx.letterSpacing = '6px'
   ctx.fillText('PERSONALIZAÇÃO', 256, 278)
   ctx.restore()
 
-  // Tagline
   ctx.save()
   ctx.fillStyle    = 'rgba(255,255,255,0.30)'
   ctx.font         = '13px Arial, sans-serif'
@@ -137,19 +129,17 @@ function buildHeroTexture() {
   ctx.fillText('DO UNIVERSO PARA VOCÊ', 256, 308)
   ctx.restore()
 
-  // Partículas brilhantes adicionais
   const sparks = [[140,310],[370,290],[190,350],[320,340],[255,390],[155,240],[360,230]]
   sparks.forEach(([x, y]) => {
     const g = ctx.createRadialGradient(x, y, 0, x, y, 6)
-    g.addColorStop(0,   'rgba(255,255,255,0.7)')
-    g.addColorStop(1,   'rgba(139,92,246,0)')
+    g.addColorStop(0, 'rgba(255,255,255,0.7)')
+    g.addColorStop(1, 'rgba(139,92,246,0)')
     ctx.fillStyle = g
     ctx.beginPath()
     ctx.arc(x, y, 6, 0, Math.PI * 2)
     ctx.fill()
   })
 
-  // Logo marca embaixo
   ctx.save()
   ctx.fillStyle    = 'rgba(139,92,246,0.50)'
   ctx.font         = 'bold 15px Arial, sans-serif'
@@ -161,9 +151,10 @@ function buildHeroTexture() {
   return c
 }
 
-// ─── Modelo GLB com textura hero ─────────────────────────────────────────────
-function GLBHeroShirt() {
-  const { scene }  = useGLTF(HERO_MODEL)
+// ─── Modelo GLB com textura configurável ──────────────────────────────────────
+function GLBHeroShirt({ modelo = 'camiseta', cor = '#ffffff', stamps = [] }) {
+  const modelPath  = MODELS[modelo] || MODELS.camiseta
+  const { scene }  = useGLTF(modelPath)
   const { gl }     = useThree()
   const groupRef   = useRef()
   const texRef     = useRef(null)
@@ -184,13 +175,13 @@ function GLBHeroShirt() {
   useEffect(() => {
     const applyCanvas = (canvas) => {
       const tex = new THREE.CanvasTexture(canvas)
-      tex.colorSpace  = THREE.SRGBColorSpace
-      tex.flipY       = false
-      tex.anisotropy  = maxAniso
-      tex.minFilter   = THREE.LinearMipmapLinearFilter
-      tex.magFilter   = THREE.LinearFilter
+      tex.colorSpace      = THREE.SRGBColorSpace
+      tex.flipY           = false
+      tex.anisotropy      = maxAniso
+      tex.minFilter       = THREE.LinearMipmapLinearFilter
+      tex.magFilter       = THREE.LinearFilter
       tex.generateMipmaps = true
-      texRef.current  = tex
+      texRef.current      = tex
       const mat = new THREE.MeshStandardMaterial({
         color:     new THREE.Color('#ffffff'),
         map:       tex,
@@ -205,37 +196,60 @@ function GLBHeroShirt() {
       })
     }
 
-    // Costas = quadrante B (cima-direito): UV x:512-1024, y:0-512 → centro (768, 256)
-    const buildCanvasWithDesign = (img) => {
-      const size = 1024
-      const c    = document.createElement('canvas')
-      c.width    = size
-      c.height   = size
-      const ctx  = c.getContext('2d')
+    const buildCanvas = async (cor, stamps) => {
+      const TEXTURE_SIZE = 1024
+      const EDITOR_SIZE  = 500
+      const scale        = TEXTURE_SIZE / EDITOR_SIZE
 
-      // Base branca (cor da camisa)
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, size, size)
+      const c   = document.createElement('canvas')
+      c.width   = TEXTURE_SIZE
+      c.height  = TEXTURE_SIZE
+      const ctx = c.getContext('2d')
 
-      if (img) {
-        const dw = 280
-        const dh = 280
-        const dx = 768 - Math.round(dw / 2)   // centro horizontal das costas
-        const dy = 256 - Math.round(dh / 2)   // centro vertical das costas
-        ctx.drawImage(img, dx, dy, dw, dh)
+      ctx.fillStyle = cor || '#ffffff'
+      ctx.fillRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE)
+
+      for (const stamp of stamps || []) {
+        const img = new window.Image()
+        img.crossOrigin = 'anonymous'
+        await new Promise((resolve) => {
+          img.onload  = resolve
+          img.onerror = resolve
+          img.src     = stamp.url
+        })
+
+        const cx    = (stamp.x + stamp.width  / 2) * scale
+        const cy    = (stamp.y + stamp.height / 2) * scale
+        const dw    = stamp.width  * scale
+        const dh    = stamp.height * scale
+        const angle = ((stamp.rotation || 0) * Math.PI) / 180
+
+        ctx.save()
+        ctx.translate(cx, cy)
+        ctx.rotate(angle)
+        ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh)
+        ctx.restore()
       }
 
       return c
     }
 
-    // Tenta carregar a imagem de design
-    const img = new window.Image()
-    img.onload  = () => applyCanvas(buildCanvasWithDesign(img))
-    img.onerror = () => applyCanvas(buildHeroTexture())  // fallback canvas Cometa
-    img.src = '/textures/hero-shirt.jpeg'
+    let cancelled = false
+    ;(async () => {
+      // Se não há stamps, usa textura fallback canvas Cometa
+      if (!stamps || stamps.length === 0) {
+        if (!cancelled) applyCanvas(buildHeroTexture(cor))
+        return
+      }
+      const canvas = await buildCanvas(cor, stamps)
+      if (!cancelled) applyCanvas(canvas)
+    })()
 
-    return () => { texRef.current?.dispose() }
-  }, [clone])
+    return () => {
+      cancelled = true
+      texRef.current?.dispose()
+    }
+  }, [clone, cor, stamps, maxAniso])
 
   useFrame((state) => {
     if (!groupRef.current) return
@@ -284,7 +298,7 @@ function GeometricFallback() {
 }
 
 // ─── Componente exportado ─────────────────────────────────────────────────────
-export default function ShirtViewer() {
+export default function ShirtViewer({ modelo, cor, stamps }) {
   return (
     <Canvas
       camera={{ position: [0, 0, 3.5], fov: 44 }}
@@ -297,7 +311,7 @@ export default function ShirtViewer() {
       <pointLight       position={[0, 2, 2]}   intensity={0.6} color="#8B5CF6" />
 
       <Suspense fallback={<GeometricFallback />}>
-        <GLBHeroShirt />
+        <GLBHeroShirt modelo={modelo} cor={cor} stamps={stamps} />
       </Suspense>
 
       <Environment preset="city" />

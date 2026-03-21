@@ -10,6 +10,7 @@ import HowItWorks from '../sections/HowItWorks'
 import WhyUs from '../sections/WhyUs'
 import Testimonials from '../sections/Testimonials'
 import FinalCTA from '../sections/FinalCTA'
+import Marquee from '../components/Marquee'
 
 export default function Home() {
   return (
@@ -21,6 +22,7 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
+        <Marquee />
         <Campaign />
         <FeaturedProducts />
         <Themes />

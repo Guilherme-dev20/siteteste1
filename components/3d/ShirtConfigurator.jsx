@@ -7,18 +7,18 @@ import dynamic from 'next/dynamic'
 import KonvaEditor from './KonvaEditor'
 import { supabase } from '../../lib/supabase'
 
-const SpaceBackground = dynamic(() => import('./SpaceBackground'), { ssr: false })
+import SpaceBackgroundCSS from './SpaceBackgroundCSS'
 
 // ─── Temas de fundo do viewport ───────────────────────────────────────────────
 const BG_THEMES = [
-  { id: 'dark',    label: 'Escuro',     bg: '#07071a',                                                                               env: 'city',   space: false },
-  { id: 'space',   label: 'Espacial',   bg: 'radial-gradient(ellipse at 50% 20%, #12082e 0%, #07071a 60%, #030310 100%)',             env: 'night',  space: true  },
-  { id: 'studio',  label: 'Estúdio',    bg: '#1c1c1c',                                                                               env: 'studio', space: false },
-  { id: 'sunset',  label: 'Pôr do Sol', bg: 'linear-gradient(180deg, #1a0a05 0%, #2d1005 50%, #0a050f 100%)',                        env: 'sunset', space: false },
-  { id: 'forest',  label: 'Floresta',   bg: 'linear-gradient(180deg, #051a08 0%, #0a1f0d 60%, #05100a 100%)',                        env: 'forest', space: false },
-  { id: 'neon',    label: 'Neon',       bg: 'linear-gradient(135deg, #000820 0%, #001020 50%, #000820 100%)',                        env: 'city',   space: false },
-  { id: 'dawn',    label: 'Amanhecer',  bg: 'linear-gradient(180deg, #0d0520 0%, #1a0830 40%, #05050f 100%)',                        env: 'dawn',   space: false },
-  { id: 'white',   label: 'Branco',     bg: '#f0f0f0',                                                                               env: 'studio', space: false },
+  { id: 'dark',    label: 'Escuro',     bg: '#07071a',                                                                               captureBg: '#07071a', env: 'city',   space: false },
+  { id: 'space',   label: 'Espacial',   bg: '#020108',                                                                               captureBg: '#0b0520', env: 'night',  space: true  },
+  { id: 'studio',  label: 'Estúdio',    bg: '#1c1c1c',                                                                               captureBg: '#1c1c1c', env: 'studio', space: false },
+  { id: 'sunset',  label: 'Pôr do Sol', bg: 'linear-gradient(180deg, #1a0a05 0%, #2d1005 50%, #0a050f 100%)',                        captureBg: '#1a0a05', env: 'sunset', space: false },
+  { id: 'forest',  label: 'Floresta',   bg: 'linear-gradient(180deg, #051a08 0%, #0a1f0d 60%, #05100a 100%)',                        captureBg: '#051a08', env: 'forest', space: false },
+  { id: 'neon',    label: 'Neon',       bg: 'linear-gradient(135deg, #000820 0%, #001020 50%, #000820 100%)',                        captureBg: '#000820', env: 'city',   space: false },
+  { id: 'dawn',    label: 'Amanhecer',  bg: 'linear-gradient(180deg, #0d0520 0%, #1a0830 40%, #05050f 100%)',                        captureBg: '#0d0520', env: 'dawn',   space: false },
+  { id: 'white',   label: 'Branco',     bg: '#f0f0f0',                                                                               captureBg: '#f0f0f0', env: 'studio', space: false },
 ]
 
 // ─── Modelos disponíveis ──────────────────────────────────────────────────────
@@ -314,14 +314,10 @@ export default function ShirtConfigurator() {
     const reader = new FileReader()
     reader.onload = (ev) => {
       const newEl = {
-        id:       Date.now(),
-        type:     'image',
-        x:        100,
-        y:        100,
-        src:      ev.target.result,
-        width:    200,
-        height:   200,
-        rotation: 0,
+        id: Date.now(), type: 'image',
+        x: 100, y: 100,
+        src: ev.target.result,
+        width: 200, height: 200, rotation: 0,
       }
       setElements((prev) => [...prev, newEl])
       setSelectedId(newEl.id)
@@ -367,6 +363,108 @@ export default function ShirtConfigurator() {
       if (controls) controls.update()
     }
 
+    // Desenha fundo espacial no canvas 2D (replica SpaceBackgroundCSS)
+    const drawSpaceBg = (ctx, w, h) => {
+      // Base
+      const base = ctx.createRadialGradient(w * 0.5, h * 0.6, 0, w * 0.5, h * 0.6, Math.max(w, h))
+      base.addColorStop(0,   '#0b0520')
+      base.addColorStop(0.5, '#050309')
+      base.addColorStop(1,   '#020108')
+      ctx.fillStyle = base
+      ctx.fillRect(0, 0, w, h)
+
+      // Névoas
+      const nebulas = [
+        { x: -0.1 * w, y: -0.1 * h, rx: 0.55 * w, ry: 0.6  * h, color: 'rgba(40,20,120,0.35)'  },
+        { x:  0.6 * w, y: -0.05 * h, rx: 0.5 * w, ry: 0.55 * h, color: 'rgba(100,20,180,0.3)'  },
+        { x:  0.15 * w, y: -0.15 * h, rx: 0.7 * w, ry: 0.65 * h, color: 'rgba(126,34,206,0.12)' },
+        { x:  0.1 * w, y:  0.75 * h, rx: 0.8 * w, ry: 0.35 * h, color: 'rgba(80,20,200,0.22)'  },
+      ]
+      nebulas.forEach(({ x, y, rx, ry, color }) => {
+        ctx.save()
+        ctx.filter = 'blur(24px)'
+        const g = ctx.createRadialGradient(x + rx / 2, y + ry / 2, 0, x + rx / 2, y + ry / 2, Math.max(rx, ry) / 2)
+        g.addColorStop(0, color)
+        g.addColorStop(1, 'transparent')
+        ctx.fillStyle = g
+        ctx.beginPath()
+        ctx.ellipse(x + rx / 2, y + ry / 2, rx / 2, ry / 2, 0, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+      })
+
+      // Via Láctea
+      ctx.save()
+      ctx.filter = 'blur(12px)'
+      ctx.translate(w / 2, h * 0.3)
+      ctx.rotate(-8 * Math.PI / 180)
+      const mw = ctx.createLinearGradient(-w * 0.7, 0, w * 0.7, 0)
+      mw.addColorStop(0,   'transparent')
+      mw.addColorStop(0.2, 'transparent')
+      mw.addColorStop(0.5, 'rgba(100,60,200,0.09)')
+      mw.addColorStop(0.8, 'transparent')
+      mw.addColorStop(1,   'transparent')
+      ctx.fillStyle = mw
+      ctx.fillRect(-w * 0.7, -h * 0.275, w * 1.4, h * 0.55)
+      ctx.restore()
+
+      // Estrelas (PRNG idêntico ao SpaceBackgroundCSS)
+      ctx.filter = 'none'
+      let s = 0xdeadbeef
+      const rand = () => { s ^= s << 13; s ^= s >> 17; s ^= s << 5; return (s >>> 0) / 0xffffffff }
+      for (let i = 0; i < 220; i++) {
+        const sx  = rand() * w
+        const sy  = rand() * h
+        const sz  = 1 + rand()
+        const op  = 0.15 + rand() * 0.75
+        ctx.beginPath()
+        ctx.arc(sx, sy, sz / 2, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255,255,255,${op})`
+        ctx.fill()
+      }
+
+      // Gradiente escuro na base
+      const fade = ctx.createLinearGradient(0, h * 0.7, 0, h)
+      fade.addColorStop(0, 'transparent')
+      fade.addColorStop(1, 'rgba(2,1,8,0.9)')
+      ctx.fillStyle = fade
+      ctx.fillRect(0, h * 0.7, w, h * 0.3)
+
+      // Vinheta
+      const vig = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.275, w / 2, h / 2, Math.max(w, h) * 0.7)
+      vig.addColorStop(0, 'transparent')
+      vig.addColorStop(1, 'rgba(2,1,8,0.7)')
+      ctx.fillStyle = vig
+      ctx.fillRect(0, 0, w, h)
+    }
+
+    // Composta o WebGL canvas sobre o fundo do tema e retorna dataURL
+    const compositeCapture = async (glCanvas) => {
+      const w   = glCanvas.width
+      const h   = glCanvas.height
+      const off = document.createElement('canvas')
+      off.width = w
+      off.height = h
+      const ctx = off.getContext('2d')
+
+      if (customBgImage) {
+        await new Promise((resolve) => {
+          const img = new window.Image()
+          img.onload  = () => { ctx.drawImage(img, 0, 0, w, h); resolve() }
+          img.onerror = () => { ctx.fillStyle = '#07071a'; ctx.fillRect(0, 0, w, h); resolve() }
+          img.src = customBgImage
+        })
+      } else if (activeBg.id === 'space') {
+        drawSpaceBg(ctx, w, h)
+      } else {
+        ctx.fillStyle = activeBg.captureBg || '#07071a'
+        ctx.fillRect(0, 0, w, h)
+      }
+
+      ctx.drawImage(glCanvas, 0, 0)
+      return off.toDataURL('image/png')
+    }
+
     // Converte dataURL em File
     const toFile = (dataUrl, name) => {
       const [header, data] = dataUrl.split(',')
@@ -396,12 +494,12 @@ export default function ShirtConfigurator() {
       // 1. Captura frente
       setAngle(0)
       await new Promise((r) => setTimeout(r, 400))
-      const frontDataUrl = gl.domElement.toDataURL('image/png')
+      const frontDataUrl = await compositeCapture(gl.domElement)
 
       // 2. Captura costas
       setAngle(Math.PI)
       await new Promise((r) => setTimeout(r, 500))
-      const backDataUrl = gl.domElement.toDataURL('image/png')
+      const backDataUrl = await compositeCapture(gl.domElement)
 
       // 3. Restaura ângulo original
       setAngle(originalAngle)
@@ -456,12 +554,8 @@ export default function ShirtConfigurator() {
                       ${activeTab === 'canvas' ? 'h-[32vh]' : 'h-[38vh]'}`}
            style={viewportBgStyle}>
 
-        {/* Fundo espacial animado */}
-        {activeBg.space && (
-          <div className="absolute inset-0 pointer-events-none z-0">
-            <SpaceBackground bgColor="#0c0c22" />
-          </div>
-        )}
+        {/* Fundo espacial CSS */}
+        {activeBg.space && <SpaceBackgroundCSS />}
 
         {/* Glow central */}
         <div className="absolute inset-0 pointer-events-none z-0">
@@ -490,10 +584,10 @@ export default function ShirtConfigurator() {
           gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true }}
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         >
-          <ambientLight intensity={0.55} />
-          <directionalLight position={[4,  6,  5]}  intensity={1.4} castShadow />
-          <directionalLight position={[-4, 6, -5]}  intensity={0.4} color="#a855f7" />
-          <pointLight       position={[0,  3,  3]}  intensity={0.7} color="#8B5CF6" />
+          <ambientLight intensity={0.3} />
+          <directionalLight position={[5,  5,  5]}  intensity={1.2} castShadow />
+          <directionalLight position={[-3, 0, -3]}  intensity={0.2} color="#a855f7" />
+          <pointLight       position={[0,  2,  2]}  intensity={0.6} color="#8B5CF6" />
 
           <Suspense fallback={<GeometricFallback color={shirtColor} />}>
             <GLBShirt
@@ -515,8 +609,7 @@ export default function ShirtConfigurator() {
           />
           <CameraRotator side={side} />
           <CanvasCapture threeRef={threeRef} />
-          {/* Environment sempre neutro — fundo visual não afeta iluminação da camisa */}
-          <Environment preset="studio" environmentIntensity={0} />
+          <Environment preset="city" />
         </Canvas>
 
         {/* Nome do modelo — lateral esquerda */}
@@ -833,9 +926,31 @@ export default function ShirtConfigurator() {
                     <p className="text-gray-400 text-sm">Clique para enviar</p>
                     <p className="text-gray-600 text-xs mt-0.5">PNG · JPG · GIF</p>
                   </button>
-                  <p className="text-[10px] text-gray-600 mt-2">
-                    A imagem será adicionada ao canvas e pode ser arrastada, redimensionada e rotacionada.
-                  </p>
+
+                  {/* Dica remove.bg */}
+                  <div
+                    className="flex items-start gap-2.5 rounded-xl p-3 mt-2"
+                    style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.18)' }}
+                  >
+                    <span className="text-base leading-none mt-0.5">✨</span>
+                    <div>
+                      <p className="text-gray-300 text-xs leading-relaxed">
+                        Quer remover o fundo da sua imagem antes de aplicar?
+                      </p>
+                      <a
+                        href="https://www.remove.bg/pt-br"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-bold mt-1.5"
+                        style={{ color: '#a78bfa' }}
+                      >
+                        Acessar remove.bg — grátis
+                        <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
                 </SectionCard>
 
               </motion.div>

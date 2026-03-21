@@ -108,7 +108,7 @@ function Stars() {
 function TestimonialCard({ item }) {
   return (
     <div
-      className="flex-shrink-0 w-[300px] sm:w-[320px] p-5 rounded-2xl flex flex-col gap-3"
+      className="flex-shrink-0 w-[240px] p-4 rounded-2xl flex flex-col gap-2"
       style={{
         background: 'linear-gradient(135deg, #0f0f24 0%, #0a0a18 100%)',
         border: '1px solid rgba(139,92,246,0.15)',
@@ -127,7 +127,10 @@ function TestimonialCard({ item }) {
       </div>
 
       {/* Quote */}
-      <p className="text-gray-300 text-sm leading-relaxed flex-1">
+      <p
+        className="text-gray-300 text-xs leading-relaxed flex-1"
+        style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+      >
         &ldquo;{item.text}&rdquo;
       </p>
 
@@ -155,9 +158,7 @@ function TestimonialCard({ item }) {
   )
 }
 
-// Split into two rows
-const row1 = TESTIMONIALS.slice(0, 5)
-const row2 = TESTIMONIALS.slice(5, 10)
+const row1 = TESTIMONIALS
 
 export default function Testimonials() {
   return (
@@ -298,27 +299,14 @@ export default function Testimonials() {
           </a>
         </div>
 
-        {/* ── Desktop: Marquee Rows ── */}
+        {/* ── Desktop: Marquee Row única ── */}
         <div className="hidden md:block">
-          {/* Marquee Row 1 — esquerda para direita */}
-          <div className="relative mb-4" style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}>
-            <div
-              className="flex gap-4"
-              style={{ width: 'max-content', animation: 'marquee-left 35s linear infinite' }}
-            >
-              {[...row1, ...row1].map((item, i) => (
-                <TestimonialCard key={i} item={item} />
-              ))}
-            </div>
-          </div>
-
-          {/* Marquee Row 2 — direita para esquerda */}
           <div className="relative" style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}>
             <div
               className="flex gap-4"
-              style={{ width: 'max-content', animation: 'marquee-right 40s linear infinite' }}
+              style={{ width: 'max-content', animation: 'marquee-left 45s linear infinite' }}
             >
-              {[...row2, ...row2].map((item, i) => (
+              {[...row1, ...row1].map((item, i) => (
                 <TestimonialCard key={i} item={item} />
               ))}
             </div>
@@ -331,10 +319,6 @@ export default function Testimonials() {
         @keyframes marquee-left {
           from { transform: translateX(0); }
           to   { transform: translateX(-50%); }
-        }
-        @keyframes marquee-right {
-          from { transform: translateX(-50%); }
-          to   { transform: translateX(0); }
         }
       `}</style>
     </section>

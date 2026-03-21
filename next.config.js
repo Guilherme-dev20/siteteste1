@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  transpilePackages: ['three'],
+  transpilePackages: ['three', 'framer-motion'],
   images: {
     domains: ['via.placeholder.com', 'picsum.photos', 'ydhmwqdeofhdxkdfytou.supabase.co'],
   },

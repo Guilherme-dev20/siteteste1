@@ -20,7 +20,7 @@ export default function ProductCard({ product, index = 0 }) {
   const price = product.price?.replace('A partir de ', '') ?? 'Sob consulta'
 
   const handleOrder = () => {
-    const text = `Olá! Tenho interesse no produto: ${product.name}. Gostaria de fazer um pedido!`
+    const text = `👋 Olá! Tenho interesse no produto *${product.name}* e quero personalizá-lo! 🚀`
     window.open(`https://wa.me/5585987208308?text=${encodeURIComponent(text)}`, '_blank')
   }
 
