@@ -284,7 +284,8 @@ export default function ShirtConfigurator() {
 
   const fileRef   = useRef(null)
   const threeRef  = useRef(null)   // { gl, camera, controls, ... } exposto pelo CanvasCapture
-  const [capturing, setCapturing] = useState(false)
+  const [capturing,    setCapturing]    = useState(false)
+  const [selectedSize, setSelectedSize] = useState('')
 
   // Recebe o canvas do KonvaEditor
   const handleKonvaCanvas = useCallback((canvas) => {
@@ -343,15 +344,18 @@ export default function ShirtConfigurator() {
   }
 
   // Captura frente + costas do 3D e compartilha/baixa antes de abrir o WhatsApp
-  const sendWhatsApp = async () => {
-    const textEls = elements.filter((el) => el.type === 'text')
-    const imgEls  = elements.filter((el) => el.type === 'image')
+  const sendWhatsApp = async (size = selectedSize) => {
+    const textEls    = elements.filter((el) => el.type === 'text')
+    const imgEls     = elements.filter((el) => el.type === 'image')
+    const activeColor = colorPalette.find((c) => c.value === shirtColor)
+    const colorLabel  = activeColor ? `${activeColor.label} (${shirtColor})` : shirtColor
     const msg =
       `Olá! Personalizei uma peça no site Cometa Personalização e gostaria de fazer um pedido.\n\n` +
-      `Produto: ${activeModel.label}\n` +
-      `Cor: ${shirtColor}` +
-      (textEls.length ? `\nTextos: ${textEls.map((t) => `"${t.text}"`).join(', ')}` : '') +
-      (imgEls.length  ? `\nImagens: ${imgEls.length}` : '') +
+      `👕 Tipo: ${activeModel.label}\n` +
+      `🎨 Cor: ${colorLabel}\n` +
+      `📏 Tamanho: ${size || 'Não informado'}` +
+      (textEls.length ? `\n✏️ Textos: ${textEls.map((t) => `"${t.text}"`).join(', ')}` : '') +
+      (imgEls.length  ? `\n🖼️ Imagens personalizadas: ${imgEls.length}` : '') +
       `\n\n📎 Mockup frente e costas enviado automaticamente!\n\nAguardo o contato!`
 
     const waUrl = `https://wa.me/5585981501747?text=${encodeURIComponent(msg)}`
@@ -836,6 +840,28 @@ export default function ShirtConfigurator() {
                   </div>
                 </SectionCard>
 
+                {/* ── Tamanho ── */}
+                <SectionCard
+                  label="TAMANHO"
+                  description="Selecione o tamanho da peça"
+                  icon={<svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>}
+                >
+                  <div className="flex gap-2 flex-wrap">
+                    {['P', 'M', 'G', 'GG', 'XGG'].map((sz) => (
+                      <button
+                        key={sz}
+                        onClick={() => setSelectedSize(sz)}
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider
+                                   transition-all duration-200 ${selectedSize === sz
+                                     ? 'bg-nebula-purple text-white shadow-purple-glow border border-nebula-purple/50'
+                                     : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white hover:bg-white/10'}`}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </SectionCard>
+
                 <SectionCard
                   label="VISTA"
                   description="Alterne entre frente e costas da peça"
@@ -1038,7 +1064,7 @@ export default function ShirtConfigurator() {
           <motion.button
             whileHover={capturing ? {} : { scale: 1.02 }}
             whileTap={capturing ? {} : { scale: 0.97 }}
-            onClick={sendWhatsApp}
+            onClick={() => sendWhatsApp()}
             disabled={capturing}
             className={`w-full btn-primary flex items-center justify-center gap-2 py-2.5 text-xs font-bold
                         transition-opacity ${capturing ? 'opacity-60 cursor-wait' : ''}`}
@@ -1069,3 +1095,4 @@ export default function ShirtConfigurator() {
     </div>
   )
 }
+
