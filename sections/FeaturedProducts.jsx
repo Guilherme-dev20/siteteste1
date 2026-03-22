@@ -209,7 +209,7 @@ export default function FeaturedProducts() {
 
           {/* Right */}
           <motion.a
-            href="https://wa.me/5585987208308?text=Olá! Gostaria de um produto personalizado que não vi no site."
+            href="https://wa.me/5585981501747?text=Olá! Gostaria de um produto personalizado que não vi no site."
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.05, boxShadow: '0 0 40px rgba(139,92,246,0.45)' }}

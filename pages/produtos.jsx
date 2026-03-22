@@ -49,8 +49,8 @@ export default function Produtos() {
   const filtered = allProducts
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
-      if (activeSort === 'A-Z') return a.name.localeCompare(b.name)
-      return 0
+      if (activeSort === 'Z-A') return b.name.localeCompare(a.name)
+      return a.name.localeCompare(b.name)
     })
 
   return (

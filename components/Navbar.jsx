@@ -96,7 +96,7 @@ export default function Navbar() {
             </Link>
           ))}
           <a
-            href="https://wa.me/5585987208308?text=Olá! Gostaria de entrar em contato."
+            href="https://wa.me/5585981501747?text=Olá! Gostaria de entrar em contato."
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary text-sm px-5 py-2"
@@ -164,7 +164,7 @@ export default function Navbar() {
                 className="mt-4 px-4"
               >
                 <a
-                  href="https://wa.me/5585987208308?text=Olá! Gostaria de entrar em contato."
+                  href="https://wa.me/5585981501747?text=Olá! Gostaria de entrar em contato."
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setMenuOpen(false)}

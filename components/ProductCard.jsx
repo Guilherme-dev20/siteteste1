@@ -19,9 +19,42 @@ export default function ProductCard({ product, index = 0 }) {
   const badge = product.badge ? BADGE[product.badge] : null
   const price = product.price?.replace('A partir de ', '') ?? 'Sob consulta'
 
-  const handleOrder = () => {
-    const text = `👋 Olá! Tenho interesse no produto *${product.name}* e quero personalizá-lo! 🚀`
-    window.open(`https://wa.me/5585987208308?text=${encodeURIComponent(text)}`, '_blank')
+  const handleOrder = async () => {
+    const text   = `👋 Olá! Tenho interesse no produto *${product.name}* e quero personalizá-lo! 🚀`
+    const waUrl  = `https://wa.me/5585981501747?text=${encodeURIComponent(text)}`
+    const imgSrc = product.placeholder || product.image
+
+    // Mobile: Web Share API com imagem
+    if (imgSrc && navigator.canShare) {
+      try {
+        const res  = await fetch(imgSrc)
+        const blob = await res.blob()
+        const file = new File([blob], `${product.name}.jpg`, { type: blob.type })
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text })
+          return
+        }
+      } catch {}
+    }
+
+    // Desktop: baixa a imagem e abre o WhatsApp
+    if (imgSrc) {
+      try {
+        const res  = await fetch(imgSrc)
+        const blob = await res.blob()
+        const url  = URL.createObjectURL(blob)
+        const a    = document.createElement('a')
+        a.href     = url
+        a.download = `${product.name}.jpg`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        await new Promise((r) => setTimeout(r, 400))
+      } catch {}
+    }
+
+    window.open(waUrl, '_blank')
   }
 
   return (

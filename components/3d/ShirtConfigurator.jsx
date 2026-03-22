@@ -39,7 +39,8 @@ const COLOR_PALETTE_FALLBACK = [
 ]
 
 // ─── Modelo GLB 3D com textura de canvas ──────────────────────────────────────
-function GLBShirt({ path, canvasEl, canvasVersion }) {
+// textureMode: 'normal' | 'flipY' | 'mirrorX'
+function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal' }) {
   const { scene }  = useGLTF(path)
   const texRef     = useRef(null)
   const meshesRef  = useRef([])
@@ -67,14 +68,28 @@ function GLBShirt({ path, canvasEl, canvasVersion }) {
   useEffect(() => {
     if (!canvasEl) return
     if (texRef.current) { texRef.current.dispose(); texRef.current = null }
-    texRef.current = new THREE.CanvasTexture(canvasEl)
+
+    // Para mirrorX: cria canvas intermediário com espelho horizontal
+    let sourceCanvas = canvasEl
+    if (textureMode === 'mirrorX') {
+      const tmp = document.createElement('canvas')
+      tmp.width  = canvasEl.width
+      tmp.height = canvasEl.height
+      const tctx = tmp.getContext('2d')
+      tctx.translate(tmp.width, 0)
+      tctx.scale(-1, 1)
+      tctx.drawImage(canvasEl, 0, 0)
+      sourceCanvas = tmp
+    }
+
+    texRef.current = new THREE.CanvasTexture(sourceCanvas)
     texRef.current.colorSpace = THREE.SRGBColorSpace
-    texRef.current.flipY = false  // GLTF usa V=0 no topo — sem flip
+    texRef.current.flipY = textureMode === 'flipY'
     const mat = new THREE.MeshStandardMaterial({
       color:     new THREE.Color('#FFFFFF'),
       map:       texRef.current,
-      roughness: 0.75,
-      metalness: 0.03,
+      roughness: 0.55,
+      metalness: 0.02,
     })
     meshesRef.current.forEach((mesh) => {
       if (mesh.material && mesh.material !== mat) mesh.material.dispose()
@@ -82,7 +97,7 @@ function GLBShirt({ path, canvasEl, canvasVersion }) {
       mesh.castShadow = true
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clone, canvasVersion])
+  }, [clone, canvasVersion, textureMode])
 
   useFrame(() => {
     if (texRef.current) texRef.current.needsUpdate = true
@@ -339,7 +354,7 @@ export default function ShirtConfigurator() {
       (imgEls.length  ? `\nImagens: ${imgEls.length}` : '') +
       `\n\n📎 Mockup frente e costas enviado automaticamente!\n\nAguardo o contato!`
 
-    const waUrl = `https://wa.me/5585987208308?text=${encodeURIComponent(msg)}`
+    const waUrl = `https://wa.me/5585981501747?text=${encodeURIComponent(msg)}`
 
     // Sem acesso ao renderer → apenas abre o WA
     if (!threeRef.current?.gl) {
@@ -595,6 +610,11 @@ export default function ShirtConfigurator() {
               path={activeModel.path}
               canvasEl={canvasElRef.current}
               canvasVersion={canvasVersion}
+              textureMode={
+                activeModel.id === 'mangalonga' ? 'flipY' :
+                activeModel.id === 'collar'     ? 'mirrorX' :
+                'normal'
+              }
             />
           </Suspense>
 

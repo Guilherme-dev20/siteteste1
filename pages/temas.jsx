@@ -277,7 +277,7 @@ export default function Temas() {
                         <p className="text-gray-400 text-xs mt-0.5">{product.category}</p>
                         <p className="text-purple-400 text-sm font-bold mt-1">{product.price}</p>
                         <a
-                          href={`https://wa.me/5585987208308?text=Olá! Quero personalizar: ${product.name}`}
+                          href={`https://wa.me/5585981501747?text=Olá! Quero personalizar: ${product.name}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="mt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white transition-all"
@@ -296,7 +296,7 @@ export default function Temas() {
                     Em breve teremos produtos para <strong className="text-white">{activeTheme.name}</strong>!
                   </p>
                   <a
-                    href="https://wa.me/5585987208308?text=Olá! Gostaria de encomendar um produto personalizado."
+                    href="https://wa.me/5585981501747?text=Olá! Gostaria de encomendar um produto personalizado."
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold text-white"

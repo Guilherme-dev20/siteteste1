@@ -74,7 +74,7 @@ export default function Footer() {
             <div className="flex gap-4 mt-6">
               {/* WhatsApp */}
               <a
-                href="https://wa.me/5585987208308"
+                href="https://wa.me/5585981501747"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full flex items-center justify-center text-[#25D366] transition-all duration-300 hover:scale-110"
@@ -132,7 +132,7 @@ export default function Footer() {
             </p>
             {/* Human identity — dúvida? fala com a gente */}
             <a
-              href="https://wa.me/5585987208308?text=Olá! Tenho uma dúvida sobre os produtos."
+              href="https://wa.me/5585981501747?text=Olá! Tenho uma dúvida sobre os produtos."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 transition-colors duration-200"

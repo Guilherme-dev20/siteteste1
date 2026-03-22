@@ -300,7 +300,7 @@ export default function Campaign() {
                               onClick={() => {
                                 const nome = product.nome ?? product.name
                                 const text = `Olá! Vi a campanha "${campaign.title}" e tenho interesse no produto: ${nome}!`
-                                window.open(`https://wa.me/5585987208308?text=${encodeURIComponent(text)}`, '_blank')
+                                window.open(`https://wa.me/5585981501747?text=${encodeURIComponent(text)}`, '_blank')
                               }}
                               className="w-full flex items-center justify-center gap-1.5 text-[10px] font-bold
                                          text-white py-1.5 rounded-lg transition-all duration-200"

@@ -22,6 +22,11 @@ const KonvaText = forwardRef(function KonvaText(
       fontFamily="Poppins, sans-serif"
       fontStyle="bold"
       fill={el.fill ?? '#FFFFFF'}
+      shadowColor="rgba(0,0,0,0.7)"
+      shadowBlur={4}
+      shadowOffsetX={1}
+      shadowOffsetY={1}
+      shadowEnabled
       rotation={el.rotation ?? 0}
       draggable
       onClick={onSelect}
@@ -133,7 +138,7 @@ export default function KonvaEditor({
     if (!dataLayerRef.current) return
     // Força redesenho síncrono antes de capturar
     dataLayerRef.current.draw()
-    const canvas = dataLayerRef.current.toCanvas({ pixelRatio: 1 / scale })
+    const canvas = dataLayerRef.current.toCanvas({ pixelRatio: 2 / scale })
     onCanvasReady(canvas)
   }, [onCanvasReady, scale])
 
