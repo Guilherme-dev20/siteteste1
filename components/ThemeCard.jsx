@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 
 export default function ThemeCard({ theme, index = 0, total = 6, featured = false }) {
+  if (!theme) return null
   const num = String(index + 1).padStart(2, '0')
   const tot = String(total).padStart(2, '0')
 

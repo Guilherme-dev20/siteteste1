@@ -15,7 +15,7 @@ const contactItems = [
   {
     icon: '📱',
     label: 'WhatsApp',
-    value: '(11) 99999-9999',
+    value: '(85) 98150-1747',
     href: 'https://wa.me/5585981501747',
     color: '#25D366',
   },

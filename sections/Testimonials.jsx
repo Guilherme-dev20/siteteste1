@@ -412,7 +412,12 @@ export default function Testimonials() {
   }, [])
 
   const displayList = realReviews
-  const marqueeList = [...displayList, ...displayList]
+  // Duplica só se tiver reviews suficientes para o marquee não mostrar buracos
+  // Se tiver poucos, exibe em grid sem animação
+  const useMarquee  = displayList.length >= 4
+  const marqueeList = useMarquee
+    ? [...displayList, ...displayList]
+    : displayList
 
   return (
     <section className="py-20 relative overflow-hidden" style={{ background: '#09091a' }}>
@@ -558,15 +563,15 @@ export default function Testimonials() {
           </button>
         </div>
 
-        {/* ── Desktop: Marquee ── */}
+        {/* ── Desktop: Marquee ou Grid ── */}
         <div className="hidden md:block mb-10">
           <div
             className="relative"
-            style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}
+            style={useMarquee ? { maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' } : {}}
           >
             <div
-              className="flex gap-4"
-              style={{ width: 'max-content', animation: 'marquee-left 55s linear infinite' }}
+              className={useMarquee ? 'flex gap-4' : 'flex gap-4 flex-wrap justify-center px-8'}
+              style={useMarquee ? { width: 'max-content', animation: 'marquee-left 55s linear infinite' } : {}}
             >
               {marqueeList.map((item, i) => (
                 <TestimonialCard key={`${item.id ?? 'f'}-${i}`} item={item} />

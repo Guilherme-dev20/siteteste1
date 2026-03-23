@@ -6,7 +6,6 @@ import Footer from '../components/Footer'
 import FloatingButtons from '../components/FloatingButtons'
 import ProductCard from '../components/ProductCard'
 import { supabase } from '../lib/supabase'
-import { sortOptions } from '../data/products'
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -30,7 +29,6 @@ function mapProduto(p) {
 export default function Produtos() {
   const [allProducts, setAllProducts] = useState([])
   const [loading, setLoading]         = useState(true)
-  const [activeSort, setActiveSort]   = useState('A-Z')
   const [search, setSearch]           = useState('')
 
   useEffect(() => {
@@ -39,7 +37,7 @@ export default function Produtos() {
       .from('produtos')
       .select('*')
       .eq('active', true)
-      .order('nome')
+      .order('id', { ascending: false })
       .then(({ data }) => {
         if (data) setAllProducts(data.map(mapProduto))
         setLoading(false)
@@ -48,10 +46,6 @@ export default function Produtos() {
 
   const filtered = allProducts
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => {
-      if (activeSort === 'Z-A') return b.name.localeCompare(a.name)
-      return a.name.localeCompare(b.name)
-    })
 
   return (
     <motion.div
@@ -88,28 +82,17 @@ export default function Produtos() {
           </motion.p>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-10">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Buscar produtos..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-space-dark border border-nebula-purple/30 text-white placeholder-gray-500
-                         rounded-full px-6 py-3 focus:outline-none focus:border-nebula-purple
-                         focus:shadow-purple-glow transition-all duration-300"
-            />
-          </div>
-          <select
-            value={activeSort}
-            onChange={(e) => setActiveSort(e.target.value)}
-            className="bg-space-dark border border-nebula-purple/30 text-white rounded-full px-6 py-3
-                       focus:outline-none focus:border-nebula-purple transition-all duration-300 cursor-pointer"
-          >
-            <option value="A-Z">A-Z</option>
-            <option value="Z-A">Z-A</option>
-          </select>
+        {/* Filtro de busca */}
+        <div className="mb-10">
+          <input
+            type="text"
+            placeholder="Buscar produtos..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-space-dark border border-nebula-purple/30 text-white placeholder-gray-500
+                       rounded-full px-6 py-3 focus:outline-none focus:border-nebula-purple
+                       focus:shadow-purple-glow transition-all duration-300"
+          />
         </div>
 
         {/* Products Grid */}

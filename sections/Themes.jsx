@@ -273,16 +273,20 @@ export default function Themes() {
 
         {/* ── Desktop: Bento Grid ── */}
         <div className="hidden md:grid md:grid-cols-3 gap-3">
-          <div className="md:col-span-2">
-            <Link href={`/temas?tema=${list[0]?.slug}`}>
-              <ThemeCard theme={list[0]} index={0} total={list.length} featured />
-            </Link>
-          </div>
-          <div>
-            <Link href={`/temas?tema=${list[1]?.slug}`}>
-              <ThemeCard theme={list[1]} index={1} total={list.length} />
-            </Link>
-          </div>
+          {list[0] && (
+            <div className="md:col-span-2">
+              <Link href={`/temas?tema=${list[0].slug}`}>
+                <ThemeCard theme={list[0]} index={0} total={list.length} featured />
+              </Link>
+            </div>
+          )}
+          {list[1] && (
+            <div>
+              <Link href={`/temas?tema=${list[1].slug}`}>
+                <ThemeCard theme={list[1]} index={1} total={list.length} />
+              </Link>
+            </div>
+          )}
           {list.slice(2, 5).map((theme, i) => (
             <div key={theme.id}>
               <Link href={`/temas?tema=${theme.slug}`}>
