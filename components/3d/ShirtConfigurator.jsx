@@ -3,7 +3,6 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, OrbitControls, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 import { motion, AnimatePresence } from 'framer-motion'
-import dynamic from 'next/dynamic'
 import KonvaEditor from './KonvaEditor'
 import { supabase } from '../../lib/supabase'
 
@@ -40,7 +39,14 @@ const COLOR_PALETTE_FALLBACK = [
 
 // ─── Modelo GLB 3D com textura de canvas ──────────────────────────────────────
 // textureMode: 'normal' | 'flipY' | 'mirrorX'
-function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal' }) {
+// Posição da marca d'água por modelo (lx%, ly% do canvas de textura)
+const WM_POS = {
+  camisateste2: { lx: 0.08, ly: 0.54 },
+  collar:       { lx: 0.79, ly: 0.54, mirrorLogo: true }, // mirrorX → posição e logo espelhados
+  mangalonga:   { lx: 0.08, ly: 0.38 },                  // flipY → ly invertido
+}
+
+function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal', modelId = 'camisateste2' }) {
   const { scene }  = useGLTF(path)
   const texRef     = useRef(null)
   const meshesRef  = useRef([])
@@ -68,7 +74,7 @@ function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal' }) {
   useEffect(() => {
     if (!canvasEl) return
     if (texRef.current) { texRef.current.dispose(); texRef.current = null }
-
+    ;(async () => {
     // Para mirrorX: cria canvas intermediário com espelho horizontal
     let sourceCanvas = canvasEl
     if (textureMode === 'mirrorX') {
@@ -82,7 +88,40 @@ function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal' }) {
       sourceCanvas = tmp
     }
 
-    texRef.current = new THREE.CanvasTexture(sourceCanvas)
+    // ── Marca d'água na textura ───────────────────────────────────────────────
+    const wmCanvas = document.createElement('canvas')
+    wmCanvas.width  = sourceCanvas.width
+    wmCanvas.height = sourceCanvas.height
+    const wctx = wmCanvas.getContext('2d')
+    wctx.drawImage(sourceCanvas, 0, 0)
+
+    const logoImg = new window.Image()
+    logoImg.src = '/logo-watermark.png'
+    await new Promise((resolve) => {
+      logoImg.onload = () => {
+        const pos = WM_POS[modelId] || WM_POS.camisateste2
+        const lw = wmCanvas.width  * 0.13
+        const lh = lw * (logoImg.naturalHeight / logoImg.naturalWidth)
+        const lx = wmCanvas.width  * pos.lx
+        const ly = wmCanvas.height * pos.ly
+        wctx.save()
+        wctx.globalAlpha = 0.32
+        if (pos.mirrorLogo) {
+          // Espelha a logo horizontalmente para compensar o mirrorX do modelo
+          wctx.translate(lx + lw, ly)
+          wctx.scale(-1, 1)
+          wctx.drawImage(logoImg, 0, 0, lw, lh)
+        } else {
+          wctx.drawImage(logoImg, lx, ly, lw, lh)
+        }
+        wctx.restore()
+        resolve()
+      }
+      logoImg.onerror = () => resolve()
+    })
+    // ─────────────────────────────────────────────────────────────────────────
+
+    texRef.current = new THREE.CanvasTexture(wmCanvas)
     texRef.current.colorSpace = THREE.SRGBColorSpace
     texRef.current.flipY = textureMode === 'flipY'
     const mat = new THREE.MeshStandardMaterial({
@@ -96,6 +135,7 @@ function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal' }) {
       mesh.material   = mat
       mesh.castShadow = true
     })
+    })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clone, canvasVersion, textureMode])
 
@@ -481,6 +521,33 @@ export default function ShirtConfigurator() {
       }
 
       ctx.drawImage(glCanvas, 0, 0)
+
+      // ── Marca d'água ──────────────────────────────────────────────────────────
+      const wm  = Math.round(w * 0.028)
+      const pad = Math.round(w * 0.022)
+      const yPos = h - Math.round(h * 0.04)
+      const label = '✦ COMETA PERSONALIZAÇÃO'
+
+      ctx.save()
+      ctx.font         = `800 ${wm}px sans-serif`
+      ctx.textBaseline = 'middle'
+      ctx.textAlign    = 'left'
+
+      // Fundo semitransparente atrás do texto
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'
+      const metrics = ctx.measureText(label)
+      ctx.roundRect?.(pad - 8, yPos - wm * 0.75, metrics.width + 16, wm * 1.5, 6)
+      ctx.fill()
+
+      // Texto
+      ctx.shadowColor = 'rgba(0,0,0,0.9)'
+      ctx.shadowBlur  = 8
+      ctx.fillStyle   = 'rgba(255,255,255,0.82)'
+      ctx.fillText(label, pad, yPos)
+
+      ctx.restore()
+      // ─────────────────────────────────────────────────────────────────────────
+
       return off.toDataURL('image/png')
     }
 
@@ -600,7 +667,7 @@ export default function ShirtConfigurator() {
 
         <Canvas
           camera={{ position: [0, -0.1, 3.8], fov: 40 }}
-          gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true }}
+          gl={{ antialias: false, alpha: true, preserveDrawingBuffer: true, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false }}
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         >
           <ambientLight intensity={0.3} />
@@ -611,6 +678,7 @@ export default function ShirtConfigurator() {
           <Suspense fallback={<GeometricFallback color={shirtColor} />}>
             <GLBShirt
               key={activeModel.id}
+              modelId={activeModel.id}
               path={activeModel.path}
               canvasEl={canvasElRef.current}
               canvasVersion={canvasVersion}
