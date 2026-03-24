@@ -22,9 +22,11 @@ const BG_THEMES = [
 
 // ─── Modelos disponíveis ──────────────────────────────────────────────────────
 const MODELS = [
-  { id: 'camisateste2', label: 'Camisa',      path: '/models/camisateste2.glb' },
-  { id: 'collar',       label: 'Camisa Gola', path: '/models/collar.glb'       },
-  { id: 'mangalonga',   label: 'Manga Longa', path: '/models/mangalonga.glb'   },
+  { id: 'camisateste2', label: 'Camisa',        path: '/models/camisateste2.glb'         },
+  { id: 'collar',       label: 'Camisa Gola',   path: '/models/collar.glb'               },
+  { id: 'mangalonga',   label: 'Manga Longa',   path: '/models/mangalonga.glb'           },
+
+  { id: 'oversized',  label: 'Camisa Oversized', path: '/models/Camisa oversized.glb'  },
 ]
 MODELS.forEach((m) => useGLTF.preload(m.path))
 
@@ -42,11 +44,14 @@ const COLOR_PALETTE_FALLBACK = [
 // Posição da marca d'água por modelo (lx%, ly% do canvas de textura)
 const WM_POS = {
   camisateste2: { lx: 0.08, ly: 0.54 },
-  collar:       { lx: 0.79, ly: 0.54, mirrorLogo: true }, // mirrorX → posição e logo espelhados
-  mangalonga:   { lx: 0.08, ly: 0.38 },                  // flipY → ly invertido
+  collar:       { lx: 0.08, ly: 0.83, mirrorLogo: true },
+  mangalonga:   { lx: 0.28, ly: 0.87 },
+
+  oversized:    { lx: 0.08, ly: 0.38 },
+
 }
 
-function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal', modelId = 'camisateste2' }) {
+function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal', modelId = 'camisateste2', sleeveColor = null }) {
   const { scene }  = useGLTF(path)
   const texRef     = useRef(null)
   const meshesRef  = useRef([])
@@ -67,7 +72,11 @@ function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal', model
   useEffect(() => {
     meshesRef.current = []
     clone.traverse((child) => {
-      if (child.isMesh) meshesRef.current.push(child)
+      if (child.isMesh) {
+        meshesRef.current.push(child)
+        // Log dos nomes dos meshes para identificar mangas do raglan
+        if (modelId === 'raglan') console.log('[raglan mesh]', child.name)
+      }
     })
   }, [clone])
 
@@ -132,12 +141,29 @@ function GLBShirt({ path, canvasEl, canvasVersion, textureMode = 'normal', model
     })
     meshesRef.current.forEach((mesh) => {
       if (mesh.material && mesh.material !== mat) mesh.material.dispose()
-      mesh.material   = mat
+
+      // Raglan: identifica mangas pelo centro X do bounding box
+      let isSleeve = false
+      if (modelId === 'raglan' && sleeveColor) {
+        const box = new THREE.Box3().setFromObject(mesh)
+        const cx  = Math.abs((box.min.x + box.max.x) / 2)
+        isSleeve  = cx > 0.45  // mangas ficam afastadas do centro
+      }
+
+      if (isSleeve) {
+        mesh.material = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(sleeveColor),
+          roughness: 0.55,
+          metalness: 0.02,
+        })
+      } else {
+        mesh.material = mat
+      }
       mesh.castShadow = true
     })
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clone, canvasVersion, textureMode])
+  }, [clone, canvasVersion, textureMode, sleeveColor])
 
   useFrame(() => {
     if (texRef.current) texRef.current.needsUpdate = true
@@ -268,6 +294,7 @@ const PaletteIcon = () => (
 export default function ShirtConfigurator() {
   const [activeModel,   setActiveModel]   = useState(MODELS[0])
   const [shirtColor,    setShirtColor]    = useState('#000000')
+  const [sleeveColor,   setSleeveColor]   = useState('#ffffff')
   const [side,          setSide]          = useState('frente')
   const [bgThemeId,     setBgThemeId]     = useState('space')
   const [customBgImage, setCustomBgImage] = useState(null)
@@ -684,9 +711,13 @@ export default function ShirtConfigurator() {
               canvasVersion={canvasVersion}
               textureMode={
                 activeModel.id === 'mangalonga' ? 'flipY' :
+
+                activeModel.id === 'oversized'  ? 'flipY' :
+
                 activeModel.id === 'collar'     ? 'mirrorX' :
                 'normal'
               }
+              sleeveColor={activeModel.id === 'raglan' ? sleeveColor : null}
             />
           </Suspense>
 
@@ -948,7 +979,7 @@ export default function ShirtConfigurator() {
                   </div>
                 </SectionCard>
 
-                <SectionCard label="COR DA PEÇA" description="Toque em uma cor para aplicar à peça" icon={<PaletteIcon />} gradient>
+                <SectionCard label="COR DO CORPO" description="Toque em uma cor para aplicar à peça" icon={<PaletteIcon />} gradient>
                   <ColorPalette palette={colorPalette} selected={shirtColor} onSelect={setShirtColor} />
                   <div className="mt-4 pt-4 border-t border-white/8 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl border border-white/20 overflow-hidden flex-shrink-0">
@@ -961,6 +992,23 @@ export default function ShirtConfigurator() {
                     </div>
                   </div>
                 </SectionCard>
+
+                {/* Cor das mangas — só aparece no Raglan */}
+                {activeModel.id === 'raglan' && (
+                  <SectionCard label="COR DAS MANGAS" description="Escolha a cor das mangas do raglan" icon={<PaletteIcon />}>
+                    <ColorPalette palette={colorPalette} selected={sleeveColor} onSelect={setSleeveColor} />
+                    <div className="mt-4 pt-4 border-t border-white/8 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl border border-white/20 overflow-hidden flex-shrink-0">
+                        <input type="color" value={sleeveColor} onChange={(e) => setSleeveColor(e.target.value)}
+                          className="w-14 h-14 -m-2 cursor-pointer border-none" />
+                      </div>
+                      <div>
+                        <p className="text-white text-xs font-mono">{sleeveColor.toUpperCase()}</p>
+                        <p className="text-gray-500 text-[10px]">Cor personalizada</p>
+                      </div>
+                    </div>
+                  </SectionCard>
+                )}
 
               </motion.div>
             )}
