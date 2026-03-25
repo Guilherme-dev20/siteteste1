@@ -5,59 +5,63 @@ import Image from 'next/image'
 import { supabase } from '../lib/supabase'
 
 const WA_SVG = (
-  <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
+  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
     <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.555 4.122 1.524 5.855L0 24l6.335-1.498C8.05 23.447 9.99 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818c-1.898 0-3.667-.514-5.177-1.409l-.371-.22-3.76.889.902-3.666-.242-.382A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/>
   </svg>
 )
 
-// ── Card produto ──────────────────────────────────────────────────────────────
-function ProductItem({ item, campaignTitle }) {
+// ── Card de produto da campanha ───────────────────────────────────────────────
+function CampaignProductCard({ item, campaignTitle, index }) {
   const url   = typeof item === 'string' ? item : item.url
-  const name  = typeof item === 'object' ? item.name  : null
-  const price = typeof item === 'object' ? item.price : null
+  const name  = typeof item === 'object' && item.name  ? item.name  : null
+  const price = typeof item === 'object' && item.price ? item.price : null
 
   const handleOrder = () => {
     const prod = name || campaignTitle
-    const text = `👋 Olá! Vi esse modelo na campanha *${prod}* e quero personalizar! 🚀`
+    const text = `👋 Olá! Vi o produto *${prod}* na campanha e quero encomendar! 🚀`
     window.open(`https://wa.me/5585981501747?text=${encodeURIComponent(text)}`, '_blank')
   }
 
   return (
-    <motion.div
-      whileHover={{ y: -3, boxShadow: '0 12px 32px rgba(109,40,217,0.3)', transition: { duration: 0.2 } }}
+    <motion.article
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-20px' }}
+      transition={{ duration: 0.4, delay: index * 0.07 }}
+      whileHover={{ y: -6, transition: { duration: 0.2 } }}
       style={{
-        borderRadius: '14px', overflow: 'hidden',
-        background: 'rgba(255,255,255,0.04)',
+        borderRadius: '16px', overflow: 'hidden',
+        background: '#0f0f23',
         border: '1px solid rgba(139,92,246,0.18)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
         display: 'flex', flexDirection: 'column',
+        transition: 'box-shadow 0.2s ease',
       }}
+      onMouseEnter={e => e.currentTarget.style.boxShadow = '0 16px 48px rgba(109,40,217,0.3), 0 4px 16px rgba(0,0,0,0.6)'}
+      onMouseLeave={e => e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.5)'}
     >
-      {/* Imagem quadrada */}
-      <div style={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', background: '#111' }}>
+      {/* Imagem */}
+      <div style={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', background: '#18103a' }}>
         <img
           src={url} alt={name || ''}
           loading="lazy"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
         />
-        {price && (
-          <div style={{
-            position: 'absolute', top: '8px', right: '8px',
-            background: 'rgba(10,5,28,0.85)', backdropFilter: 'blur(6px)',
-            border: '1px solid rgba(168,85,247,0.45)',
-            borderRadius: '7px', padding: '3px 8px',
-            fontSize: '11px', fontWeight: 800, color: '#d8b4fe',
-          }}>
-            R$ {price}
-          </div>
-        )}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, transparent 55%, rgba(10,5,28,0.65) 100%)',
+          pointerEvents: 'none',
+        }} />
       </div>
 
-      {/* Info */}
-      <div style={{ padding: '10px 10px 10px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+      {/* Rodapé do card */}
+      <div style={{ padding: '14px 14px 14px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
         {name && (
           <p style={{
-            fontSize: '12px', fontWeight: 700, color: '#e9e4ff',
+            fontSize: '13px', fontWeight: 700, color: '#e2d9ff',
             margin: 0, lineHeight: 1.35,
             display: '-webkit-box', WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical', overflow: 'hidden',
@@ -65,23 +69,35 @@ function ProductItem({ item, campaignTitle }) {
             {name}
           </p>
         )}
-        <button
+
+        {price && (
+          <div>
+            <p style={{ fontSize: '9px', fontWeight: 600, color: '#6b7280', letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
+              A partir de
+            </p>
+            <p style={{ fontSize: '20px', fontWeight: 900, color: '#c4b5fd', letterSpacing: '-0.02em', lineHeight: 1.1, margin: 0 }}>
+              R$ {price}
+            </p>
+          </div>
+        )}
+
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          whileHover={{ boxShadow: '0 6px 24px rgba(109,40,217,0.6)', transition: { duration: 0.15 } }}
           onClick={handleOrder}
           style={{
             marginTop: 'auto',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            height: '34px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            background: 'rgba(34,197,94,0.15)',
-            color: '#4ade80', fontSize: '11px', fontWeight: 700,
-            transition: 'background 0.2s',
+            width: '100%', height: '40px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+            background: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+            boxShadow: '0 3px 14px rgba(109,40,217,0.35)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '6px', color: '#fff', fontSize: '11px', fontWeight: 700,
           }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,197,94,0.28)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,197,94,0.15)'}
         >
-          {WA_SVG} Pedir
-        </button>
+          {WA_SVG} Pedir no WhatsApp
+        </motion.button>
       </div>
-    </motion.div>
+    </motion.article>
   )
 }
 
@@ -104,8 +120,8 @@ export default function Campaign() {
 
   if (!campaigns.length) return null
 
-  const campaign  = campaigns.find(c => c.id === activeId) || campaigns[0]
-  const imagesArr = Array.isArray(campaign.images) ? campaign.images.filter(Boolean) : []
+  const campaign     = campaigns.find(c => c.id === activeId) || campaigns[0]
+  const imagesArr    = Array.isArray(campaign.images) ? campaign.images.filter(Boolean) : []
   const collectionLink = campaign.collection_link ?? campaign.collectionLink
 
   return (
@@ -118,7 +134,7 @@ export default function Campaign() {
 
       <div className="relative max-w-7xl mx-auto">
 
-        {/* ── Header seção ── */}
+        {/* ── Header ── */}
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.5 }} className="mb-8">
           <div className="flex items-start gap-4 mb-6">
@@ -165,149 +181,127 @@ export default function Campaign() {
           )}
         </motion.div>
 
-        {/* ── Painel da campanha ── */}
+        {/* ── Campanha ativa ── */}
         <AnimatePresence mode="wait">
           <motion.div key={campaign.id}
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35 }}>
 
-            <div className="rounded-3xl overflow-hidden"
-              style={{ border: '1px solid rgba(139,92,246,0.22)', boxShadow: '0 40px 100px rgba(0,0,0,0.65)', background: '#0e0720' }}>
+            {/* ── Banner full-width com texto sobreposto ── */}
+            <div className="relative rounded-3xl overflow-hidden mb-6"
+              style={{ border: '1px solid rgba(139,92,246,0.22)', boxShadow: '0 32px 80px rgba(0,0,0,0.65)' }}>
 
-              {/* ── Desktop: banner esq + conteúdo dir ── */}
-              <div className="hidden md:flex" style={{ minHeight: '480px' }}>
+              {/* Imagem do banner */}
+              <div className="relative w-full" style={{ aspectRatio: '16/9', minHeight: '320px' }}>
+                <Image
+                  src={campaign.banner_url ?? campaign.banner}
+                  alt={campaign.title}
+                  fill sizes="100vw"
+                  className="object-cover"
+                  quality={95} priority
+                />
 
-                {/* Banner — esquerda */}
-                <div className="relative flex-shrink-0" style={{ width: '45%' }}>
-                  <Image
-                    src={campaign.banner_url ?? campaign.banner}
-                    alt={campaign.title}
-                    fill sizes="45vw"
-                    className="object-cover"
-                    quality={95} priority
-                  />
-                </div>
+                {/* Gradiente: escurece da dir pra esq no desktop, de baixo pra cima no mobile */}
+                <div className="hidden md:block absolute inset-0" style={{
+                  background: 'linear-gradient(to right, rgba(14,7,32,0.1) 30%, rgba(14,7,32,0.92) 70%, rgba(14,7,32,0.98) 100%)',
+                }} />
+                <div className="md:hidden absolute inset-0" style={{
+                  background: 'linear-gradient(to bottom, rgba(14,7,32,0.05) 25%, rgba(14,7,32,0.9) 75%, rgba(14,7,32,0.99) 100%)',
+                }} />
 
-                {/* Conteúdo — direita */}
-                <div className="flex flex-col flex-1 min-w-0 p-8"
-                  style={{ background: 'linear-gradient(135deg, #130d2e 0%, #0e0720 100%)', borderLeft: '1px solid rgba(139,92,246,0.12)' }}>
+                {/* Badge no topo esquerdo */}
+                {campaign.badge && (
+                  <div className="absolute top-4 left-4 md:top-5 md:left-5 z-10">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase text-white"
+                      style={{ backgroundColor: campaign.badge_color ?? '#7c3aed', boxShadow: '0 4px 16px rgba(0,0,0,0.5)' }}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      {campaign.badge}
+                    </span>
+                  </div>
+                )}
 
-                  {/* Badge + título + desc */}
-                  <div className="mb-6">
-                    {campaign.badge && (
-                      <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase text-white mb-3"
-                        style={{ backgroundColor: campaign.badge_color ?? '#7c3aed' }}>
-                        {campaign.badge}
-                      </span>
+                {/* Texto — desktop: lado direito | mobile: rodapé */}
+                <div className="absolute inset-0 flex items-center justify-end">
+                  {/* Desktop */}
+                  <div className="hidden md:flex flex-col justify-center h-full px-10 py-8"
+                    style={{ width: '42%' }}>
+                    {campaign.subtitle && (
+                      <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '6px' }}>
+                        {campaign.subtitle}
+                      </p>
                     )}
-                    <h2 className="font-black text-white leading-tight mb-2"
-                      style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.2rem)', letterSpacing: '-0.02em' }}>
+                    <h2 className="font-black text-white leading-tight mb-3"
+                      style={{ fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', letterSpacing: '-0.03em' }}>
                       {campaign.title}
                     </h2>
                     {campaign.description && (
-                      <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.6 }}>
+                      <p className="mb-5" style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.6 }}>
                         {campaign.description}
                       </p>
                     )}
-                  </div>
-
-                  {/* Produtos */}
-                  {imagesArr.length > 0 && (
-                    <div className="flex-1">
-                      <p style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#6b7280', marginBottom: '12px' }}>
-                        Produtos relacionados
-                      </p>
-                      <div className="grid grid-cols-2 gap-3">
-                        {imagesArr.map((item, i) => (
-                          <ProductItem key={i} item={item} campaignTitle={campaign.title} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Botão ver coleção */}
-                  {collectionLink && (
-                    <div className="mt-6">
+                    {collectionLink && (
                       <Link href={collectionLink}
-                        className="flex items-center justify-center gap-2 w-full text-white font-bold"
-                        style={{ background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', height: '48px',
-                                 borderRadius: '14px', fontSize: '12px', textTransform: 'uppercase',
-                                 letterSpacing: '0.1em', boxShadow: '0 6px 24px rgba(124,58,237,0.45)' }}>
+                        className="inline-flex items-center gap-2 text-white font-bold self-start"
+                        style={{ background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', padding: '12px 24px',
+                                 borderRadius: '12px', fontSize: '12px', textTransform: 'uppercase',
+                                 letterSpacing: '0.08em', boxShadow: '0 6px 24px rgba(124,58,237,0.5)' }}>
                         Ver coleção completa
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                         </svg>
                       </Link>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* ── Mobile: banner no topo + conteúdo abaixo ── */}
-              <div className="md:hidden">
-                {/* Banner */}
-                <div className="relative" style={{ aspectRatio: '16/9' }}>
-                  <Image
-                    src={campaign.banner_url ?? campaign.banner}
-                    alt={campaign.title}
-                    fill sizes="100vw"
-                    className="object-cover"
-                    quality={90} priority
-                  />
-                  <div className="absolute inset-0" style={{
-                    background: 'linear-gradient(to bottom, transparent 40%, rgba(14,7,32,0.95) 100%)',
-                  }} />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    {campaign.badge && (
-                      <span className="inline-block px-2.5 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase text-white mb-2"
-                        style={{ backgroundColor: campaign.badge_color ?? '#7c3aed' }}>
-                        {campaign.badge}
-                      </span>
                     )}
-                    <h2 className="font-black text-white leading-tight"
-                      style={{ fontSize: 'clamp(1.5rem, 7vw, 2.2rem)', letterSpacing: '-0.02em' }}>
-                      {campaign.title}
-                    </h2>
                   </div>
                 </div>
 
-                {/* Conteúdo */}
-                <div className="p-5" style={{ background: '#130d2e' }}>
-                  {campaign.description && (
-                    <p className="mb-5" style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.6 }}>
-                      {campaign.description}
+                {/* Mobile: só badge + título sobre a imagem */}
+                <div className="md:hidden absolute bottom-0 left-0 right-0 p-4"
+                  style={{ background: 'linear-gradient(to top, rgba(14,7,32,0.85) 0%, transparent 100%)' }}>
+                  {campaign.subtitle && (
+                    <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '4px' }}>
+                      {campaign.subtitle}
                     </p>
                   )}
-
-                  {imagesArr.length > 0 && (
-                    <>
-                      <p style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#6b7280', marginBottom: '12px' }}>
-                        Produtos relacionados
-                      </p>
-                      <div className="grid grid-cols-2 gap-3 mb-5">
-                        {imagesArr.map((item, i) => (
-                          <ProductItem key={i} item={item} campaignTitle={campaign.title} />
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  {collectionLink && (
-                    <Link href={collectionLink}
-                      className="flex items-center justify-center gap-2 w-full text-white font-bold"
-                      style={{ background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', height: '48px',
-                               borderRadius: '14px', fontSize: '12px', textTransform: 'uppercase',
-                               letterSpacing: '0.1em', boxShadow: '0 6px 24px rgba(124,58,237,0.45)' }}>
-                      Ver coleção completa
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                  )}
+                  <h2 className="font-black text-white leading-tight"
+                    style={{ fontSize: 'clamp(1.4rem, 7vw, 2rem)', letterSpacing: '-0.02em' }}>
+                    {campaign.title}
+                  </h2>
                 </div>
               </div>
-
             </div>
+
+            {/* Mobile: descrição + botão abaixo do banner */}
+            {(campaign.description || collectionLink) && (
+              <div className="md:hidden px-1 pt-4 pb-2 flex flex-col gap-3">
+                {campaign.description && (
+                  <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>
+                    {campaign.description}
+                  </p>
+                )}
+                {collectionLink && (
+                  <Link href={collectionLink}
+                    className="flex items-center justify-center gap-2 text-white font-bold w-full"
+                    style={{ background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', height: '46px',
+                             borderRadius: '12px', fontSize: '11px', textTransform: 'uppercase',
+                             letterSpacing: '0.08em', boxShadow: '0 4px 18px rgba(124,58,237,0.5)' }}>
+                    Ver coleção completa
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {/* ── Grade de produtos ── */}
+            {imagesArr.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {imagesArr.map((item, i) => (
+                  <CampaignProductCard key={i} item={item} campaignTitle={campaign.title} index={i} />
+                ))}
+              </div>
+            )}
+
           </motion.div>
         </AnimatePresence>
 
