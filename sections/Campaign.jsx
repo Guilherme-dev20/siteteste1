@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Link from 'next/link'
+import { useRouter } from 'next/router'
 import Image from 'next/image'
 import { supabase } from '../lib/supabase'
 
@@ -103,6 +103,7 @@ function CampaignProductCard({ item, campaignTitle, index }) {
 
 // ── Seção principal ───────────────────────────────────────────────────────────
 export default function Campaign() {
+  const router = useRouter()
   const [campaigns, setCampaigns] = useState([])
   const [activeId, setActiveId]   = useState(null)
 
@@ -123,6 +124,10 @@ export default function Campaign() {
   const campaign     = campaigns.find(c => c.id === activeId) || campaigns[0]
   const imagesArr    = Array.isArray(campaign.images) ? campaign.images.filter(Boolean) : []
   const collectionLink = campaign.collection_link ?? campaign.collectionLink
+
+  const goToCollection = () => {
+    if (campaign.tab) router.push(`/campanha/${campaign.tab}`)
+  }
 
   return (
     <section className="relative py-16 px-4" style={{ background: '#0b0415' }}>
@@ -239,17 +244,18 @@ export default function Campaign() {
                         {campaign.description}
                       </p>
                     )}
-                    {collectionLink && (
-                      <Link href={collectionLink}
+                    {imagesArr.length > 0 && (
+                      <button onClick={goToCollection}
                         className="inline-flex items-center gap-2 text-white font-bold self-start"
                         style={{ background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', padding: '12px 24px',
                                  borderRadius: '12px', fontSize: '12px', textTransform: 'uppercase',
-                                 letterSpacing: '0.08em', boxShadow: '0 6px 24px rgba(124,58,237,0.5)' }}>
+                                 letterSpacing: '0.08em', boxShadow: '0 6px 24px rgba(124,58,237,0.5)',
+                                 border: 'none', cursor: 'pointer' }}>
                         Ver coleção completa
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                         </svg>
-                      </Link>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -278,24 +284,25 @@ export default function Campaign() {
                     {campaign.description}
                   </p>
                 )}
-                {collectionLink && (
-                  <Link href={collectionLink}
+                {imagesArr.length > 0 && (
+                  <button onClick={goToCollection}
                     className="flex items-center justify-center gap-2 text-white font-bold w-full"
                     style={{ background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', height: '46px',
                              borderRadius: '12px', fontSize: '11px', textTransform: 'uppercase',
-                             letterSpacing: '0.08em', boxShadow: '0 4px 18px rgba(124,58,237,0.5)' }}>
+                             letterSpacing: '0.08em', boxShadow: '0 4px 18px rgba(124,58,237,0.5)',
+                             border: 'none', cursor: 'pointer' }}>
                     Ver coleção completa
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                     </svg>
-                  </Link>
+                  </button>
                 )}
               </div>
             )}
 
             {/* ── Grade de produtos ── */}
             {imagesArr.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div id={`campaign-products-${campaign.id}`} className="grid grid-cols-2 md:grid-cols-4 gap-4" style={{ scrollMarginTop: '80px' }}>
                 {imagesArr.map((item, i) => (
                   <CampaignProductCard key={i} item={item} campaignTitle={campaign.title} index={i} />
                 ))}
