@@ -9,7 +9,13 @@ export default function Document() {
         <meta name="keywords" content="personalização, camisas, canecas, editor 3D, custom" />
         <meta property="og:title" content="Cometa Personalização" />
         <meta property="og:description" content="Crie produtos únicos e personalizados com nosso editor 3D." />
+        <meta property="og:image" content="https://cometapersonalizacao.shop/og-image.png" />
+        <meta property="og:url" content="https://cometapersonalizacao.shop" />
+        <meta property="og:type" content="website" />
         <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
