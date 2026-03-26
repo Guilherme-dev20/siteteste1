@@ -140,7 +140,7 @@ export default function Themes() {
               return (
                 <Link
                   key={theme.id}
-                  href={`/temas?tema=${theme.slug}`}
+                  href={`/tema/${theme.slug}`}
                   aria-label={`Ver tema ${theme.name}`}
                   style={{ scrollSnapAlign: 'start', flexShrink: 0, width: '82vw', maxWidth: '300px' }}
                 >
@@ -275,28 +275,28 @@ export default function Themes() {
         <div className="hidden md:grid md:grid-cols-3 gap-3">
           {list[0] && (
             <div className="md:col-span-2">
-              <Link href={`/temas?tema=${list[0].slug}`}>
+              <Link href={`/tema/${list[0].slug}`}>
                 <ThemeCard theme={list[0]} index={0} total={list.length} featured />
               </Link>
             </div>
           )}
           {list[1] && (
             <div>
-              <Link href={`/temas?tema=${list[1].slug}`}>
+              <Link href={`/tema/${list[1].slug}`}>
                 <ThemeCard theme={list[1]} index={1} total={list.length} />
               </Link>
             </div>
           )}
           {list.slice(2, 5).map((theme, i) => (
             <div key={theme.id}>
-              <Link href={`/temas?tema=${theme.slug}`}>
+              <Link href={`/tema/${theme.slug}`}>
                 <ThemeCard theme={theme} index={i + 2} total={list.length} />
               </Link>
             </div>
           ))}
           {list[5] && (
             <div>
-              <Link href={`/temas?tema=${list[5].slug}`}>
+              <Link href={`/tema/${list[5].slug}`}>
                 <ThemeCard theme={list[5]} index={5} total={list.length} />
               </Link>
             </div>
