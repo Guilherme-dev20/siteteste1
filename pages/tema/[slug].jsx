@@ -16,13 +16,9 @@ const WA_SVG = (
 )
 
 // ── Card de produto ───────────────────────────────────────────────────────────
-function ProductCard({ product, themeColor, index }) {
-  const price = product.preco
-    ? `${Number(product.preco).toFixed(2).replace('.', ',')}`
-    : null
-
+function ProductCard({ item, themeColor, index }) {
   const handleOrder = () => {
-    const text = `👋 Olá! Vi o produto *${product.nome}* e quero encomendar! 🚀`
+    const text = `👋 Olá! Vi o produto *${item.name}* e quero encomendar! 🚀`
     window.open(`https://wa.me/5585981501747?text=${encodeURIComponent(text)}`, '_blank')
   }
 
@@ -52,41 +48,32 @@ function ProductCard({ product, themeColor, index }) {
     >
       {/* Imagem */}
       <div style={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', background: '#18103a' }}>
-        {product.imagem_url ? (
-          <img src={product.imagem_url} alt={product.nome} loading="lazy"
+        {item.url ? (
+          <img src={item.url} alt={item.name || ''} loading="lazy"
             style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-5xl"
-            style={{ background: `${themeColor}22` }}>
-            🎨
-          </div>
+            style={{ background: `${themeColor}22` }}>🎨</div>
         )}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
           background: 'linear-gradient(to bottom, transparent 55%, rgba(10,5,28,0.6) 100%)',
         }} />
-        {product.badge && (
-          <span style={{
-            position: 'absolute', top: '10px', left: '10px',
-            background: themeColor, borderRadius: '20px',
-            padding: '3px 10px', fontSize: '10px', fontWeight: 700, color: '#fff',
-          }}>
-            {product.badge}
-          </span>
-        )}
       </div>
 
       {/* Info */}
       <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
-        <p style={{ fontSize: '13px', fontWeight: 700, color: '#e2d9ff', margin: 0, lineHeight: 1.4,
-                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-          {product.nome}
-        </p>
+        {item.name && (
+          <p style={{ fontSize: '13px', fontWeight: 700, color: '#e2d9ff', margin: 0, lineHeight: 1.4,
+                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {item.name}
+          </p>
+        )}
 
-        {price && (
+        {item.price && (
           <div>
             <p style={{ fontSize: '9px', fontWeight: 600, color: '#6b7280', letterSpacing: '0.1em',
                         textTransform: 'uppercase', margin: '0 0 2px' }}>
@@ -94,7 +81,7 @@ function ProductCard({ product, themeColor, index }) {
             </p>
             <p style={{ fontSize: '22px', fontWeight: 900, color: '#c4b5fd',
                         letterSpacing: '-0.02em', lineHeight: 1, margin: 0 }}>
-              R$ {price}
+              R$ {item.price}
             </p>
           </div>
         )}
@@ -120,9 +107,8 @@ export default function TemaDetalhe() {
   const router   = useRouter()
   const { slug } = router.query
 
-  const [tema, setTema]         = useState(null)
-  const [products, setProducts] = useState([])
-  const [loading, setLoading]   = useState(true)
+  const [tema, setTema]     = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!slug || !supabase) return
@@ -132,9 +118,8 @@ export default function TemaDetalhe() {
       .select('*')
       .eq('slug', slug)
       .single()
-      .then(async ({ data: t }) => {
+      .then(({ data: t }) => {
         if (!t) { setLoading(false); return }
-
         setTema({
           id:          t.id,
           name:        t.nome,
@@ -143,19 +128,8 @@ export default function TemaDetalhe() {
           color:       t.cor || '#8B5CF6',
           description: t.descricao || '',
           cover:       t.cover_url || '',
-          product_ids: t.product_ids || [],
+          items:       Array.isArray(t.items) ? t.items.filter(Boolean) : [],
         })
-
-        const ids = t.product_ids || []
-        if (!ids.length) { setLoading(false); return }
-
-        const { data: prods } = await supabase
-          .from('produtos')
-          .select('*')
-          .in('id', ids)
-          .eq('active', true)
-
-        setProducts(prods || [])
         setLoading(false)
       })
   }, [slug])
@@ -243,19 +217,19 @@ export default function TemaDetalhe() {
             </div>
 
             {/* Contador */}
-            {products.length > 0 && (
+            {tema.items.length > 0 && (
               <p style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.3em',
                           textTransform: 'uppercase', color: '#4b5563', marginBottom: '20px' }}>
                 Modelos disponíveis
-                <span style={{ marginLeft: '8px', color: tema.color }}>({products.length})</span>
+                <span style={{ marginLeft: '8px', color: tema.color }}>({tema.items.length})</span>
               </p>
             )}
 
             {/* Grade */}
-            {products.length > 0 ? (
+            {tema.items.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {products.map((p, i) => (
-                  <ProductCard key={p.id} product={p} themeColor={tema.color} index={i} />
+                {tema.items.map((item, i) => (
+                  <ProductCard key={i} item={item} themeColor={tema.color} index={i} />
                 ))}
               </div>
             ) : (

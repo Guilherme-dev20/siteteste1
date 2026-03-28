@@ -123,8 +123,6 @@ export default function Campaign() {
 
   const campaign     = campaigns.find(c => c.id === activeId) || campaigns[0]
   const imagesArr    = Array.isArray(campaign.images) ? campaign.images.filter(Boolean) : []
-  const collectionLink = campaign.collection_link ?? campaign.collectionLink
-
   const goToCollection = () => {
     if (campaign.tab) router.push(`/campanha/${campaign.tab}`)
   }
@@ -277,7 +275,7 @@ export default function Campaign() {
             </div>
 
             {/* Mobile: descrição + botão abaixo do banner */}
-            {(campaign.description || collectionLink) && (
+            {campaign.description && (
               <div className="md:hidden px-1 pt-4 pb-2 flex flex-col gap-3">
                 {campaign.description && (
                   <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>

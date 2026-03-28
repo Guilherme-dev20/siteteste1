@@ -2,10 +2,10 @@ import Head from 'next/head'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
+
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FloatingButtons from '../components/FloatingButtons'
-import { themes as localThemes } from '../data/themes'
 import { supabase } from '../lib/supabase'
 
 function mapTema(t) {
@@ -16,14 +16,13 @@ function mapTema(t) {
     icon:        t.icone || '🎨',
     color:       t.cor || '#8B5CF6',
     description: t.descricao || '',
-    cover:       t.cover_url || `https://picsum.photos/seed/${t.slug}/600/400`,
-    product_ids: t.product_ids || [],
+    cover:       t.cover_url || '',
   }
 }
 
 export default function Temas() {
   const router = useRouter()
-  const [themes, setThemes] = useState(localThemes)
+  const [themes, setThemes] = useState([])
 
   useEffect(() => {
     if (!supabase) return
