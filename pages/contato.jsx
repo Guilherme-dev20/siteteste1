@@ -23,7 +23,7 @@ const contactItems = [
     icon: '📸',
     label: 'Instagram',
     value: '@cometapersonalizacao',
-    href: 'https://instagram.com/cometapersonalizacao',
+    href: 'https://www.instagram.com/cometa_personalizacoes?igsh=aHdqeGRzOGpvbXR4',
     color: '#E1306C',
   },
   {

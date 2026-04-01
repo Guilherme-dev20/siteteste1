@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const WHATSAPP_NUMBER = '5585981501747'
-const INSTAGRAM_URL = 'https://instagram.com/cometapersonalizacao'
+const INSTAGRAM_URL = 'https://www.instagram.com/cometa_personalizacoes?igsh=aHdqeGRzOGpvbXR4'
 
 function WhatsAppSVG() {
   return (

@@ -88,7 +88,7 @@ export default function Footer() {
               </a>
               {/* Instagram */}
               <a
-                href="https://instagram.com/cometapersonalizacao"
+                href="https://www.instagram.com/cometa_personalizacoes?igsh=aHdqeGRzOGpvbXR4"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full flex items-center justify-center text-[#E1306C] transition-all duration-300 hover:scale-110"
