@@ -53,16 +53,29 @@ function TestimonialCard({ item }) {
         boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
       }}
     >
-      {/* Foto do produto (se houver) */}
-      {item.foto_url && (
-        <div className="relative w-full" style={{ aspectRatio: '4/3', overflow: 'hidden' }}>
-          <img
-            src={item.foto_url}
-            alt={`Foto de ${item.nome}`}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(10,10,24,0.8) 100%)' }} />
+      {/* Mídia: foto + vídeo juntos (estilo e-commerce) */}
+      {(item.foto_url || item.video_url) && (
+        <div style={{ overflow: 'hidden' }}>
+          {/* Se tem os dois: lado a lado */}
+          {item.foto_url && item.video_url ? (
+            <div className="flex" style={{ aspectRatio: '4/3' }}>
+              <div style={{ width: '50%', overflow: 'hidden', borderRight: '1px solid rgba(0,0,0,0.4)' }}>
+                <img src={item.foto_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+              </div>
+              <div style={{ width: '50%', overflow: 'hidden', background: '#000' }}>
+                <video src={item.video_url} className="w-full h-full object-cover" controls playsInline preload="metadata" />
+              </div>
+            </div>
+          ) : item.foto_url ? (
+            <div className="relative" style={{ aspectRatio: '4/3', overflow: 'hidden' }}>
+              <img src={item.foto_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(10,10,24,0.8) 100%)' }} />
+            </div>
+          ) : (
+            <div style={{ aspectRatio: '4/3', overflow: 'hidden', background: '#000' }}>
+              <video src={item.video_url} className="w-full h-full object-cover" controls playsInline preload="metadata" />
+            </div>
+          )}
         </div>
       )}
 
@@ -507,10 +520,25 @@ export default function Testimonials() {
                 border: '1px solid rgba(139,92,246,0.15)',
               }}
             >
-              {item.foto_url && (
-                <div style={{ aspectRatio: '16/9', overflow: 'hidden' }}>
-                  <img src={item.foto_url} alt="" className="w-full h-full object-cover" />
-                </div>
+              {(item.foto_url || item.video_url) && (
+                item.foto_url && item.video_url ? (
+                  <div className="flex" style={{ aspectRatio: '16/9' }}>
+                    <div style={{ width: '50%', overflow: 'hidden', borderRight: '1px solid rgba(0,0,0,0.4)' }}>
+                      <img src={item.foto_url} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <div style={{ width: '50%', overflow: 'hidden', background: '#000' }}>
+                      <video src={item.video_url} className="w-full h-full object-cover" controls playsInline preload="metadata" />
+                    </div>
+                  </div>
+                ) : item.foto_url ? (
+                  <div style={{ aspectRatio: '16/9', overflow: 'hidden' }}>
+                    <img src={item.foto_url} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div style={{ aspectRatio: '16/9', overflow: 'hidden', background: '#000' }}>
+                    <video src={item.video_url} className="w-full h-full object-cover" controls playsInline preload="metadata" />
+                  </div>
+                )
               )}
               <div className="p-5 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
